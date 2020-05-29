@@ -4,7 +4,7 @@ This is the template for a spheroid_publication analysis.
 
 There will be 4 different analyses, implemented as 4 different branches:  
 1) A main paper analysis ('master'): orchestrates all analyses  
-2) Steady state analysis ('steady'): 4 different cell lines  
+2) Physiology analysis ('phys'): 4 different cell lines  
 3) Overexpression analysis ('oexp'): x constructs overexpressed in 360 spheres  
 4) Brightfield analysis ('bf'): Analysis of the brightfield images  
 
