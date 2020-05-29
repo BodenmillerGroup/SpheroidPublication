@@ -1,0 +1,12 @@
+[submodule "modules/oexp"]
+	path = modules/oexp
+	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
+	branch = oexp
+[submodule "modules/phys"]
+	path = modules/phys
+	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
+	branch = phys
+[submodule "modules/bf"]
+	path = modules/bf
+	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
+	branch = bf
