@@ -2,5 +2,5 @@
 input_data_folders:
   - '/home/vitoz/mnt/tmp/scratch/vitoz/archive/vitoz/RawData/platescans_uncompressed/'
 input_file_regexp: ".*[0-9]+-Vito-Spheroid-p(169|163|171|167|161|165|173|176)(rev)*-.*.TIF$"
-output_folder: data
+output_folder: results
 

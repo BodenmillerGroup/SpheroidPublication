@@ -3,7 +3,7 @@ description: a configuration for the imc segmentation pipeline
 properties:
   input_data_folders:
     type: array
-    description: list of input data folders[example_data]
+    description: list of input results folders[example_data]
     required: true
 
   input_file_regexp:
@@ -13,8 +13,8 @@ properties:
 
   output_folder:
     type: string
-    default: data
-    description: path to output data
+    default: results
+    description: path to output results
     required: false
 
   cellprofiler_container:

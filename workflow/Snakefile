@@ -1,18 +1,15 @@
-import urllib.request
 import pathlib
 import os
-import shutil
 import sys
 
-sys.path.append("../../")
-from scripts import helpers as hpr
+from workflow.scripts import helpers as hpr
 from snakemake.utils import validate
 from snakemake.io import strip_wildcard_constraints, expand
 import pandas as pd
 
 # Cellprofiler/Ilastik rules
-include: '../../rules/cellprofiler.smk'
-include: '../../rules/ilastik.smk'
+include: 'workflow/rules/cellprofiler.smk'
+include: 'workflow/rules/ilastik.smk'
 
 # Read Configuration
 configfile: 'config/config_bf.yml'
@@ -34,10 +31,12 @@ cellprofiler_container = config['cellprofiler_container']
 cp_plugins = config['cellprofiler_plugins']
 # Define hardcoded variables
 ## Define basic folder structrue
-fn_cp_scaling =  os.path.abspath('cp_pipelines/1_rescale_bf.cppipe')
-fn_cp_segmentation =  os.path.abspath('cp_pipelines/2_segment_bf.cppipe')
-fn_cp_measurement =  os.path.abspath('cp_pipelines/3_measure_bf.cppipe')
-fn_ilastik_proj = 'classifiers/bfsegmentation.ilp'
+fn_cp_scaling =  os.path.abspath('../resources/cp_pipelines/1_rescale_bf.cppipe')
+fn_cp_segmentation =  os.path.abspath('../resources/cp_pipelines/2_segment_bf.cppipe')
+fn_cp_measurement =  os.path.abspath('../resources/cp_pipelines/3_measure_bf.cppipe')
+fn_ilastik_proj = '../classifiers/bfsegmentation.ilp'
+
+fn_manual_qc = 'config/bfqc_manual_v1.csv'
 
 folder_analysis = folder_base / 'tiff'
 folder_input = pathlib.Path('input_data')
@@ -115,25 +114,25 @@ fkt_fns_overlay = hpr.get_derived_input_fkt(fkt_fns_scaled, pat_fn_scaled, pat_f
 # (Please look at rules/cellprofiler.smk for the documentation of this structure)
 config_dict_cp = {
     'rescale': {
-        'run_size': 500,
+        'run_size': 50,
         'plugins': cp_plugins,
         'pipeline': fn_cp_scaling,
         'input_files': [fkt_fns_input],
-        'output_patterns': [pat_fn_scaled],
+        'output_patterns': {'scaled': directory(folder_scaled)},
     },
     'segmasks': {
-        'run_size': 500,
+        'run_size': 50,
         'plugins': cp_plugins,
         'pipeline': fn_cp_segmentation,
-        'input_files': [fkt_fns_probabilities],
-        'output_patterns': [pat_fn_mask],
+        'input_files': [folder_probab],
+        'output_patterns': {'.': directory(folder_mask)},
     },
     'measuremasks': {
-        'run_size': 500,
+        'run_size': 50,
         'plugins': cp_plugins,
         'pipeline': fn_cp_measurement,
-        'input_files': [fkt_fns_mask, fkt_fns_scaled],
-        'output_patterns': cp_meas_output + [pat_fn_overlay],
+        'input_files': [folder_mask, folder_scaled, folder_probab],
+        'output_patterns': {'.': cp_meas_output, 'overlays': directory(folder_cp_ov)}
     }
 }
 
@@ -142,22 +141,22 @@ config_dict_cp = {
 # Configuration for Ilastik steps
 # (Please look at rules/cellprofiler.smk for the documentation of this structure)
 config_dict_ilastik = {
-    'cell':
+    'spheres':
         {'project': fn_ilastik_proj,
-         'run_size': 500,
+         'run_size': 50,
          'output_format': 'tiff',
          'output_filename': f'{{nickname}}{suffix_probablities}{suffix_tiff}',
          'export_source': 'Probabilities',
-         'export_dtype': 'uint16',
+         'export_dtype': 'uint8',
          'pipeline_result_drange': '"(0.0, 1.0)"',
-         'input_files': fkt_fns_scaled,
-         'output_pattern': pat_fn_probabilities
+         'input_files': folder_scaled,
+         'output_pattern': directory(folder_probab)
          }
 }
 
 # Target rules
 rule all:
-    input: cp_meas_output
+    input: cp_meas_output, folder_cp_ov
 
 rule scaled_imgs:
     input:
@@ -197,9 +196,40 @@ rule retrieve_input_files:
     #    pathlib.Path(fn_output).parent.mkdir(exist_ok=True)
     #    shutil.copy(fn_input, fn_output)
 
+
+# Analysis scripts
+folder_results = pathlib.Path('results')
+folder_plateov = folder_results / 'plate_overviews'
+folder_wellov = folder_results / 'well_overviews'
+fn_hqspheres = folder_results / 'hq_spheres.csv'
+fn_fig1_bfspheres = folder_results / 'fig1_bfspheres.png'
+
+rule nb_sphere_size:
+    input:
+        fn_mask=fn_mask,
+        fn_images=fn_image,
+        fol_overviews=folder_cp_ov,
+        fol_images=folder_scaled,
+        fol_masks=folder_mask,
+        fn_manual_qc=fn_manual_qc
+    output:
+        fol_plateov = directory(folder_plateov),
+        fol_wellov = directory(folder_wellov),
+        fn_hqspheres = fn_hqspheres,
+        fn_fig1_bfspheres = fn_fig1_bfspheres
+    log:
+        # optional path to the processed notebook
+        notebook="logs/notebooks/1_sphere_size.py.ipynb"
+    notebook:
+        "notebooks/1_sphere_size3.py.ipynb"
+
 rule sync_to_cluster:
     shell:
-        'rsync -rtu /home/vitoz/mnt/tmp/scratch/vitoz/Git/SpheroidPublication vizano@cluster.s3it.uzh.ch:/data/vizano/Git/ --progress --exclude=".*"'
+        'rsync -rtu /home/vitoz/mnt/tmp/scratch/vitoz/Git/SpheroidPublication vizano@cluster.s3it.uzh.ch:/results/vizano/Git/ --progress --exclude=".*"'
+
+rule sync_from_cluster:
+    shell:
+         'rsync -rtu vizano@cluster.s3it.uzh.ch:/results/vizano/Git/SpheroidPublication /home/vitoz/mnt/tmp/scratch/vitoz/Git/  --progress --exclude=".*"'
 
 ## Rules to target Cellprofiler batch runs
 define_cellprofiler_rules(config_dict_cp, folder_base, container_cp=cellprofiler_container)
