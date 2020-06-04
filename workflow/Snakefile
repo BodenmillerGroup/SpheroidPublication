@@ -1,19 +1,18 @@
 import pathlib
 import os
-import sys
 
-from workflow.scripts import helpers as hpr
+from scripts import helpers as hpr
 from snakemake.utils import validate
 from snakemake.io import strip_wildcard_constraints, expand
 import pandas as pd
 
 # Cellprofiler/Ilastik rules
-include: 'workflow/rules/cellprofiler.smk'
-include: 'workflow/rules/ilastik.smk'
+include: 'rules/cellprofiler.smk'
+include: 'rules/ilastik.smk'
 
 # Read Configuration
 configfile: 'config/config_bf.yml'
-validate(config, "config/config_bf.schema.yml")
+validate(config, "schemas/config_bf.schema.yml")
 
 # Extract variables from configuration
 ## Input/output
@@ -31,12 +30,12 @@ cellprofiler_container = config['cellprofiler_container']
 cp_plugins = config['cellprofiler_plugins']
 # Define hardcoded variables
 ## Define basic folder structrue
-fn_cp_scaling =  os.path.abspath('../resources/cp_pipelines/1_rescale_bf.cppipe')
-fn_cp_segmentation =  os.path.abspath('../resources/cp_pipelines/2_segment_bf.cppipe')
-fn_cp_measurement =  os.path.abspath('../resources/cp_pipelines/3_measure_bf.cppipe')
-fn_ilastik_proj = '../classifiers/bfsegmentation.ilp'
+fn_cp_scaling =  os.path.abspath('resources/cp_pipelines/1_rescale_bf.cppipe')
+fn_cp_segmentation =  os.path.abspath('resources/cp_pipelines/2_segment_bf.cppipe')
+fn_cp_measurement =  os.path.abspath('resources/cp_pipelines/3_measure_bf.cppipe')
+fn_ilastik_proj = 'resources/classifiers/bfsegmentation.ilp'
 
-fn_manual_qc = 'config/bfqc_manual_v1.csv'
+fn_manual_qc = 'resources/bfqc_manual_v1.csv'
 
 folder_analysis = folder_base / 'tiff'
 folder_input = pathlib.Path('input_data')
@@ -105,10 +104,13 @@ def fkt_fns_input(wildcards):
 
 ## Define derived (dynamic) input files functions
 ## This generates functions to define input filenames based on other input filename functions
-fkt_fns_scaled = hpr.get_derived_input_fkt(fkt_fns_input, pat_fn_input, pat_fn_scaled)
-fkt_fns_probabilities = hpr.get_derived_input_fkt(fkt_fns_scaled, pat_fn_scaled, pat_fn_probabilities)
-fkt_fns_mask = hpr.get_derived_input_fkt(fkt_fns_scaled, pat_fn_scaled, pat_fn_mask)
-fkt_fns_overlay = hpr.get_derived_input_fkt(fkt_fns_scaled, pat_fn_scaled, pat_fn_overlay)
+
+# Analysis scripts
+folder_results = pathlib.Path('results')
+folder_plateov = folder_results / 'plate_overviews'
+folder_wellov = folder_results / 'well_overviews'
+fn_hqspheres = folder_results / 'hq_spheres.csv'
+fn_fig1_bfspheres = folder_results / 'fig1_bfspheres.png'
 
 # Configuration for cellprofiler pipeline steps
 # (Please look at rules/cellprofiler.smk for the documentation of this structure)
@@ -156,11 +158,11 @@ config_dict_ilastik = {
 
 # Target rules
 rule all:
-    input: cp_meas_output, folder_cp_ov
+    input: cp_meas_output, folder_cp_ov, folder_scaled, fn_hqspheres
 
 rule scaled_imgs:
     input:
-         fkt_fns_scaled
+         folder_scaled
 
 rule input_imgs:
     input:
@@ -197,19 +199,13 @@ rule retrieve_input_files:
     #    shutil.copy(fn_input, fn_output)
 
 
-# Analysis scripts
-folder_results = pathlib.Path('results')
-folder_plateov = folder_results / 'plate_overviews'
-folder_wellov = folder_results / 'well_overviews'
-fn_hqspheres = folder_results / 'hq_spheres.csv'
-fn_fig1_bfspheres = folder_results / 'fig1_bfspheres.png'
 
 rule nb_sphere_size:
     input:
+        fol_images=folder_scaled,
         fn_mask=fn_mask,
         fn_images=fn_image,
         fol_overviews=folder_cp_ov,
-        fol_images=folder_scaled,
         fol_masks=folder_mask,
         fn_manual_qc=fn_manual_qc
     output:
@@ -217,15 +213,17 @@ rule nb_sphere_size:
         fol_wellov = directory(folder_wellov),
         fn_hqspheres = fn_hqspheres,
         fn_fig1_bfspheres = fn_fig1_bfspheres
+    conda:
+        'envs/bf.yml'
     log:
         # optional path to the processed notebook
         notebook="logs/notebooks/1_sphere_size.py.ipynb"
     notebook:
-        "notebooks/1_sphere_size3.py.ipynb"
+        "notebooks/1_sphere_size.py.ipynb"
 
 rule sync_to_cluster:
     shell:
-        'rsync -rtu /home/vitoz/mnt/tmp/scratch/vitoz/Git/SpheroidPublication vizano@cluster.s3it.uzh.ch:/results/vizano/Git/ --progress --exclude=".*"'
+        'rsync -rtu /home/vitoz/mnt/tmp/scratch/vitoz/Git/SpheroidPublication vizano@cluster.s3it.uzh.ch:/data/vizano/Git/ --progress --exclude=".*"'
 
 rule sync_from_cluster:
     shell:

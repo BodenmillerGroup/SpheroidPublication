@@ -1,4 +1,4 @@
-from workflow.scripts import helpers as hpr
+from scripts import helpers as hpr
 from snakemake.io import get_flag_value
 import pathlib
 import functools

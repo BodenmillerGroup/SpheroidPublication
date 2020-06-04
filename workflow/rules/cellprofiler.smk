@@ -1,5 +1,5 @@
 import json
-from workflow.scripts import helpers as hpr
+from scripts import helpers as hpr
 import pathlib
 from snakemake.io import get_flag_value
 
