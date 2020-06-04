@@ -1,0 +1,19 @@
+name: module_bf
+channels:
+  - conda-forge
+  - bioconda
+  - pyviz
+  - r
+  - defaults
+dependencies:
+  - numpy
+  - python=3.8
+  - pandas
+  - snakemake
+  - pip
+  - matplotlib
+  - plotnine
+  - seaborn
+  - tifffile
+  - scikit-image
+
