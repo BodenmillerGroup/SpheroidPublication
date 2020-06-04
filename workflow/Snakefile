@@ -6,6 +6,9 @@ from snakemake.utils import validate
 from snakemake.io import strip_wildcard_constraints, expand
 import pandas as pd
 
+# Global conda container
+container: "docker://continuumio/miniconda:4.7.12"
+
 # Cellprofiler/Ilastik rules
 include: 'rules/cellprofiler.smk'
 include: 'rules/ilastik.smk'
@@ -18,7 +21,7 @@ validate(config, "schemas/config_bf.schema.yml")
 ## Input/output
 input_data_folders = config['input_data_folders']
 input_file_regexp = config['input_file_regexp']
-folder_base = pathlib.Path(config['output_folder'])
+folder_base = pathlib.Path('results')
 
 fn_dat_input = 'config/input_files.csv'
 
@@ -215,6 +218,7 @@ rule nb_sphere_size:
         fn_fig1_bfspheres = fn_fig1_bfspheres
     conda:
         'envs/bf.yml'
+    threads: 32
     log:
         # optional path to the processed notebook
         notebook="logs/notebooks/1_sphere_size.py.ipynb"

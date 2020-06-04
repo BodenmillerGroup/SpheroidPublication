@@ -15,5 +15,6 @@ dependencies:
   - plotnine
   - seaborn
   - tifffile
+  - jupyter
   - scikit-image
 
