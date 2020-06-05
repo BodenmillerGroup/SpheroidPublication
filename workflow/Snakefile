@@ -1,242 +1,277 @@
+import urllib.request
 import pathlib
-import os
+from imctools.converters import ome2analysis
+from imctools.converters import exportacquisitioncsv
+from imctools.converters import mcdfolder2imcfolder
 
 from scripts import helpers as hpr
 from snakemake.utils import validate
-from snakemake.io import strip_wildcard_constraints, expand
-import pandas as pd
-
-# Global conda container
-container: "docker://continuumio/miniconda:4.7.12"
 
 # Cellprofiler/Ilastik rules
 include: 'rules/cellprofiler.smk'
 include: 'rules/ilastik.smk'
 
 # Read Configuration
-configfile: 'config/config_bf.yml'
-validate(config, "schemas/config_bf.schema.yml")
+configfile: 'config/config_phys.yml'
+validate(config, "schemas/config_phys.schema.yml")
 
 # Extract variables from configuration
 ## Input/output
 input_data_folders = config['input_data_folders']
 input_file_regexp = config['input_file_regexp']
-folder_base = pathlib.Path('results')
 
-fn_dat_input = 'config/input_files.csv'
+## Panel
+csv_panel = config['csv_panel']
+csv_panel_metal = config['csv_panel_metal']
+csv_panel_ilastik = config['csv_panel_ilastik']
+csv_panel_full = config['csv_panel_full']
+csv_panel_sphereseg = config['csv_panel_sphereseg']
+
+# path
+img_minsize = 50
 
 ## Ilastik run config
 ilastik_container = config['ilastik_container']
+ilastik_threads = config['ilastik_threads']
+ilastik_mem_mb = config['ilastik_mem_mb']
 
 # Cellprofiler default config
 cellprofiler_container = config['cellprofiler_container']
 cp_plugins = config['cellprofiler_plugins']
+
 # Define hardcoded variables
 ## Define basic folder structrue
-fn_cp_scaling =  os.path.abspath('resources/cp_pipelines/1_rescale_bf.cppipe')
-fn_cp_segmentation =  os.path.abspath('resources/cp_pipelines/2_segment_bf.cppipe')
-fn_cp_measurement =  os.path.abspath('resources/cp_pipelines/3_measure_bf.cppipe')
-fn_ilastik_proj = 'resources/classifiers/bfsegmentation.ilp'
+folder_base = pathlib.Path('results')
 
-fn_manual_qc = 'resources/bfqc_manual_v1.csv'
+folder_zip = folder_base / 'zip'
+folder_ome = folder_base / 'ome'
+folder_analysis = folder_base / 'tiffs'
+folder_sphere_full = folder_analysis / 'full'
+folder_sphere_ilastik = folder_analysis / 'ilastik'
+folder_sphere_align = folder_analysis / 'align'
+folder_sphereseg_ilastik = folder_analysis / 'sphere_ilastik'
+folder_sphereseg_ilastik_h5 = folder_analysis / 'sphere_ilastik_h5'
+folder_sphereseg_ilastik_prob = folder_analysis / 'sphere_ilastik_prob'
+folder_sphereseg_mask = folder_analysis / 'sphere_mask'
 
-folder_analysis = folder_base / 'tiff'
-folder_input = pathlib.Path('input_data')
-folder_scaled = folder_analysis / ('scaled')
-folder_probab = folder_analysis / ('probab')
-folder_mask = folder_analysis / ('mask')
-folder_cp = folder_base / ('cpout')
-folder_cp_ov = folder_cp / 'overlays'
+folder_spherecrop = folder_base / 'sphere_crops'
+folder_spherecrop_tiff = folder_spherecrop / 'tiffs'
+folder_spherecrop_ilastik_h5 = folder_spherecrop / 'cell_ilastik_h5'
+folder_spherecrop_ilastik_prob = folder_spherecrop / 'cell_ilastik_prob'
+folder_spherecrop_mask = folder_spherecrop / 'cell_ilastik_mask'
+folder_spherecrop_ifstack = folder_spherecrop / 'if_stack'
+folder_spherecrop_ifqcstack = folder_spherecrop / 'ifqc_stack'
+folder_spherecrop_ifqcprob = folder_spherecrop / 'ifqc_prob'
+
+folder_cp = folder_base / 'cpout'
+
+folder_classifiers = folder_base / 'classifiers'
 
 ## Define Output files
 fn_image = folder_cp / 'Image.csv'
-fn_mask = folder_cp / 'mask.csv'
+fn_cell = folder_cp / 'cell.csv'
 fn_experiment = folder_cp / 'Experiment.csv'
-
-# Produce a list of all cellprofiler output files
-cp_meas_output = [fn_image, fn_mask, fn_experiment]
+fn_object_rel = folder_cp / 'Object relationships.csv'
 
 # Identify a dictionary of input folders/zips containing .mcd files to process
-dict_zip_fns = hpr.get_filenames_by_re(input_data_folders, input_file_regexp)
+dict_zip_fns = {fn.stem: fn for fn in hpr.get_filenames_by_re(input_data_folders, input_file_regexp)}
+
+# Produce a list of all cellprofiler output files
+cp_measurements_output = [fn_image, fn_cell, fn_experiment, fn_object_rel]
+
 
 ## Define suffixes
-suffix_plate = '_p{platenr}'
-suffix_scale = '_r5'
+suffix_full = '_full'
+suffix_ilastik = '_ilastik'
+suffix_scale = '_s2'
 suffix_mask = '_mask'
 suffix_probablities = '_Probabilities'
-suffix_overlay = '_overlay'
 suffix_tiff = '.tiff'
+suffix_csv = '.csv'
+suffix_h5 = '.h5'
+suffix_done = '.done'
+suffix_crop = '_{crop, x[0-9]+_y[0-9]+_w[0-9]+_h[0-9]+}'
+suffix_sphereseg = '_sphereseg'
 
 ## Define derived file patterns
-pat_basename_input = '{img_base}_Plate_{platenr, [0-9]+}/TimePoint_1/{img_base}{well}.TIF'
-pat_basename_image = '{img_base}{well}'
+pat_fn_zip = folder_base / 'zips' / ('{zipfol}' + '.zip')
+pat_fn_mcdparse_done = folder_base / 'zips' / ('{zipfol}' + suffix_done)
+fn_all_mcd_converted = folder_base / 'all_mcd_converted.done'
 
-pat_fn_input= folder_input / pat_basename_input
-pat_fn_plate = folder_analysis / (f'{pat_basename_image}{suffix_plate}{suffix_tiff}')
-pat_fn_scaled = folder_analysis / (f'{pat_fn_plate.stem}{suffix_scale}{suffix_tiff}')
-pat_fn_probabilities = folder_analysis / (f'{pat_fn_scaled.stem}{suffix_probablities}{suffix_tiff}')
-pat_fn_mask= folder_analysis / (f'{pat_fn_probabilities.stem}{suffix_mask}{suffix_tiff}')
-pat_fn_overlay= folder_cp_ov / (f'{pat_fn_scaled.stem}{suffix_overlay}{suffix_tiff}')
-
-done_rescale = folder_analysis / 'rescale.done'
-fol_scale_combined =  folder_analysis / 'cp_rescale'/ 'combined'
-
-FN_DICT = None
-def get_dict():
-    global FN_DICT
-    if FN_DICT is None:
-        dat = pd.read_csv(fn_dat_input)
-        d = {str(out): str(inp) for inp, out in dat.loc[:, ['input_filename', 'output_filename']].values}
-        FN_DICT = d
-    else:
-        d = FN_DICT
-    return d
-
-# Define dynamic files
-## Define (dynamic) input file functions
-def fkt_fns_input(wildcards):
-    """
-    Identifies the input images.
-    :param wildcards: wildcards dynamically provided by snakemake
-    :return: A list of all `.ome.tiffs` generated.
-    """
-    checkpoints.define_input_files.get()
-    fns_output = pd.read_csv(fn_dat_input)['output_filename']
-    fns = [str(folder_input / fn) for fn in fns_output]
-    return fns
-
-## Define derived (dynamic) input files functions
-## This generates functions to define input filenames based on other input filename functions
-
-# Analysis scripts
-folder_results = pathlib.Path('results')
-folder_plateov = folder_results / 'plate_overviews'
-folder_wellov = folder_results / 'well_overviews'
-fn_hqspheres = folder_results / 'hq_spheres.csv'
-fn_fig1_bfspheres = folder_results / 'fig1_bfspheres.png'
+## Init dirs
+folder_ome.mkdir(parents=True, exist_ok=True)
 
 # Configuration for cellprofiler pipeline steps
 # (Please look at rules/cellprofiler.smk for the documentation of this structure)
 config_dict_cp = {
-    'rescale': {
-        'run_size': 50,
+    'prepare_sphereseg': {
+        'run_size': 20,
         'plugins': cp_plugins,
-        'pipeline': fn_cp_scaling,
-        'input_files': [fkt_fns_input],
-        'output_patterns': {'scaled': directory(folder_scaled)},
-    },
-    'segmasks': {
-        'run_size': 50,
-        'plugins': cp_plugins,
-        'pipeline': fn_cp_segmentation,
-        'input_files': [folder_probab],
-        'output_patterns': {'.': directory(folder_mask)},
-    },
-    'measuremasks': {
-        'run_size': 50,
-        'plugins': cp_plugins,
-        'pipeline': fn_cp_measurement,
-        'input_files': [folder_mask, folder_scaled, folder_probab],
-        'output_patterns': {'.': cp_meas_output, 'overlays': directory(folder_cp_ov)}
+        'pipeline': 'resources/cp_pipelines/1_prepare_spheresegilastik.cppipe',
+        'input_files': [folder_sphereseg_ilastik],
+        'output_patterns': {'sphereseg': directory(folder_sphereseg_ilastik_h5),
+                            'align': directory(folder_sphere_align)}
     }
 }
 
-
-
-# Configuration for Ilastik steps
-# (Please look at rules/cellprofiler.smk for the documentation of this structure)
 config_dict_ilastik = {
-    'spheres':
-        {'project': fn_ilastik_proj,
-         'run_size': 50,
+    'ilastik_spheres':
+        {'project': 'resources/classifiers/sphere_segmentation.ilp',
+         'run_size': 10,
          'output_format': 'tiff',
          'output_filename': f'{{nickname}}{suffix_probablities}{suffix_tiff}',
          'export_source': 'Probabilities',
-         'export_dtype': 'uint8',
+         'export_dtype': 'uint16',
          'pipeline_result_drange': '"(0.0, 1.0)"',
-         'input_files': folder_scaled,
-         'output_pattern': directory(folder_probab)
+         'input_files': folder_sphereseg_ilastik_h5,
+         'output_pattern': directory(folder_sphereseg_ilastik_prob)
          }
 }
 
+config_dict_cp.update({
+    'sphere_segment': {
+        'run_size': 10,
+        'plugins': cp_plugins,
+        'pipeline': 'resources/cp_pipelines/2_spheresegment.cppipe',
+        'input_files': [folder_sphereseg_ilastik_prob],
+        'output_patterns': {'.': directory(folder_sphereseg_mask)}
+    },
+    'sphere_crop': {
+        'run_size': 20,
+        'plugins': cp_plugins,
+        'pipeline': 'resources/cp_pipelines/3_spherecrop.cppipe',
+        'input_files': [folder_sphereseg_mask, folder_sphere_full,
+                        folder_sphere_ilastik, folder_sphere_align,
+                        folder_sphereseg_ilastik_prob],
+        'output_patterns': {'.': directory(folder_spherecrop_tiff)}
+    },
+    'prepare_cellilastik': {
+        'run_size': 40,
+        'plugins': cp_plugins,
+        'pipeline': 'resources/cp_pipelines/4_prepareilastik_imcspheres.cppipe',
+        'input_files': [folder_spherecrop_tiff],
+        'output_patterns': {'.': directory(folder_spherecrop_ilastik_h5)}
+    }
+})
+
+config_dict_ilastik.update({
+    'ilastik_cells':
+        {'project': 'resources/classifiers/cell_segmentation.ilp',
+         'run_size': 40,
+         'output_format': 'tiff',
+         'output_filename': f'{{nickname}}{suffix_probablities}{suffix_tiff}',
+         'export_source': 'Probabilities',
+         'export_dtype': 'uint16',
+         'pipeline_result_drange': '"(0.0, 1.0)"',
+         'input_files': folder_spherecrop_ilastik_h5,
+         'output_pattern': directory(folder_spherecrop_ilastik_prob)
+         }
+
+})
+
+config_dict_cp.update({
+    'cell_segment': {
+        'run_size': 10,
+        'plugins': cp_plugins,
+        'pipeline': 'resources/cp_pipelines/5_segment_imccells.cppipe',
+        'input_files': [folder_spherecrop_ilastik_prob],
+        'output_patterns': {'.': directory(folder_spherecrop_mask)}
+    }
+})
+
 # Target rules
 rule all:
-    input: cp_meas_output, folder_cp_ov, folder_scaled, fn_hqspheres
+    input: folder_spherecrop_mask
 
-rule scaled_imgs:
-    input:
-         folder_scaled
+def get_zip_fn(wildcards):
+    return dict_zip_fns[wildcards.zipfol]
 
-rule input_imgs:
-    input:
-         fkt_fns_input
-
-checkpoint define_input_files:
-    output:
-        fn_dat_input
-    run:
-        fns = hpr.get_filenames_by_re(input_data_folders, input_file_regexp)
-        dat_input = (pd.DataFrame({'input_filename': fns})
-                 .assign(output_filename= lambda d: d['input_filename']
-        .map(lambda fn: fn.relative_to(fn.parent.parent.parent)))
-                 )
-        dat_input.to_csv('config/input_files.csv', index=False)
-
-def get_fn_from(wildcards):
-    rel_fol = expand(strip_wildcard_constraints(str(pathlib.Path(pat_fn_input).relative_to(folder_input))), **wildcards)[0]
-    return get_dict()[rel_fol]
-
-rule retrieve_input_files:
-    input: fn_dat_input
-    output: pat_fn_input
+rule retrieve_zip:
+    output: pat_fn_zip
     params:
-        fn_input_file = get_fn_from
-    threads: 1
+        fn = get_zip_fn
     shell:
-        'rsync -u {params.fn_input_file} {output[0]}'
-    #run:
-    #    fn_output = pathlib.Path(output[0])
-    #    fn_base_output = fn_output.relative_to(folder_input)
-    #    fn_input = params[0][str(fn_base_output)]
-    #    pathlib.Path(fn_output).parent.mkdir(exist_ok=True)
-    #    shutil.copy(fn_input, fn_output)
+        'cp {params.fn} {output[0]}'
 
-
-
-rule nb_sphere_size:
+# MCD to ome conversion
+rule mcdfolder2imcfolder:
     input:
-        fol_images=folder_scaled,
-        fn_mask=fn_mask,
-        fn_images=fn_image,
-        fol_overviews=folder_cp_ov,
-        fol_masks=folder_mask,
-        fn_manual_qc=fn_manual_qc
-    output:
-        fol_plateov = directory(folder_plateov),
-        fol_wellov = directory(folder_wellov),
-        fn_hqspheres = fn_hqspheres,
-        fn_fig1_bfspheres = fn_fig1_bfspheres
+        fn_zip = pat_fn_zip
+    output: touch(pat_fn_mcdparse_done)
+    threads: 1
+    params:
+        fol_ome = folder_ome
     conda:
-        'envs/bf.yml'
+        'envs/env_imctools.yml'
+    script:
+        'scripts/convert_imcfolder.py'
+
+checkpoint all_mcd_converted:
+    input: expand(str(pat_fn_mcdparse_done), zipfol=dict_zip_fns.keys())
+    output:
+        touch(fn_all_mcd_converted)
+
+
+# OME to analysis tiff conversion
+rule ome2full:
+    input:
+        fol_ome = folder_ome,
+        panel = csv_panel,
+        done = fn_all_mcd_converted
+    params:
+        column_used = 'full',
+        column_metal = csv_panel_metal,
+        suffix = suffix_full,
+        min_imgsize = img_minsize
+    output:
+        directory(folder_sphere_full)
     threads: 32
-    log:
-        # optional path to the processed notebook
-        notebook="logs/notebooks/1_sphere_size.py.ipynb"
-    notebook:
-        "notebooks/1_sphere_size.py.ipynb"
+    conda:
+         'envs/env_imctools.yml'
+    script:
+        'scripts/imc2analysis.py'
 
-rule sync_to_cluster:
-    shell:
-        'rsync -rtu /home/vitoz/mnt/tmp/scratch/vitoz/Git/SpheroidPublication vizano@cluster.s3it.uzh.ch:/data/vizano/Git/ --progress --exclude=".*"'
+rule ome2ilastik:
+    input:
+        fol_ome = folder_ome,
+        panel = csv_panel,
+        done = fn_all_mcd_converted
+    output:
+        directory(folder_sphere_ilastik)
+    conda:
+         'envs/env_imctools.yml'
+    params:
+        column_used = 'ilastik',
+        column_metal = csv_panel_metal,
+        suffix = suffix_ilastik,
+        min_imgsize = img_minsize
+    threads: 32
+    script:
+          'scripts/imc2analysis.py'
 
-rule sync_from_cluster:
-    shell:
-         'rsync -rtu vizano@cluster.s3it.uzh.ch:/results/vizano/Git/SpheroidPublication /home/vitoz/mnt/tmp/scratch/vitoz/Git/  --progress --exclude=".*"'
+rule ome2sphereseg:
+    input:
+         fol_ome = folder_ome,
+         panel = csv_panel,
+         done = fn_all_mcd_converted
+    output:
+          directory(folder_sphereseg_ilastik)
+    conda:
+         'envs/env_imctools.yml'
+    params:
+          column_used = 'sphereseg',
+          column_metal = csv_panel_metal,
+          suffix = suffix_sphereseg,
+          min_imgsize = img_minsize
+    threads: 32
+    script:
+          'scripts/imc2analysis.py'
+
 
 ## Rules to target Cellprofiler batch runs
 define_cellprofiler_rules(config_dict_cp, folder_base, container_cp=cellprofiler_container)
-define_ilastik_rules(config_dict_ilastik, folder_base, threads=4,
-                     mem_mb=15000, container_ilastik=ilastik_container)
+define_ilastik_rules(config_dict_ilastik, folder_base, threads=ilastik_threads,
+                     mem_mb=ilastik_mem_mb, container_ilastik=ilastik_container)
 
 ### Varia
 

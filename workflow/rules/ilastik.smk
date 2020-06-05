@@ -144,8 +144,8 @@ def define_ilastik_rules(configs_ilastik, folder_base,
             '--export_source={params.export_source} '
             '--export_dtype={params.export_dtype} '
             '--pipeline_result_drange={params.pipeline_result_drange} '
-            '--readonly '
-            '{params.fkt_fns} {params.fkt_fns[0]}'
+            '--readonly 1 '
+            '{params.fkt_fns}'
             #'{input.fns} {input.fns[0]}' # Above is a temporary fix for issue #55 of snakemake
             # The first file is added again as Ilastik seems to ignore the first input file :/
 
