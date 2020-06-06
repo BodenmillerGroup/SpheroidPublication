@@ -2,6 +2,7 @@ import json
 from scripts import helpers as hpr
 import pathlib
 from snakemake.io import get_flag_value
+import shutil
 
 def define_cellprofiler_rules(configs_cp, folder_base,
                               container_cp="docker://cellprofiler/cellprofiler:3.1.9"):
@@ -88,7 +89,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
                 with open(output[0], mode='w') as f:
                     fns_list = [inp for inp in params]
                     for pfn in fns_list:
-                        if isinstance(pfn,pathlib.Path):
+                        if isinstance(pfn, pathlib.Path):
                             if pfn.is_dir():
                                 fns = pfn.rglob('*')
                             else:
@@ -109,10 +110,8 @@ def define_cellprofiler_rules(configs_cp, folder_base,
                     threads: 1
                     params:
                         subfol = subfol
-                    shell:
-                         """
-                         mv  $(realpath {input.fol_combined}/{params.subfol}) {output[0]}
-                         """
+                    run:
+                        shutil.move(pathlib.Path(input.fol_combined[0]) / params.subfol, output[0])
             else:
                 for outfile in outval:
                     rule:
@@ -123,10 +122,9 @@ def define_cellprofiler_rules(configs_cp, folder_base,
                         threads: 1
                         params:
                             subfol = subfol
-                        shell:
-                            """
-                            mv $(realpath {input.fol_combined}/{params.subfol}/"$(basename "{output[0]}")") "{output[0]}"
-                            """
+                        run:
+                            shutil.move(((pathlib.Path(input.fol_combined[0]) / params.subfol) / pathlib.Path(output[0])).resolve(),
+                                        output[0])
 
     # Define Cellprofiler specific rules
     rule cp_get_plugins:
