@@ -158,9 +158,21 @@ def define_cellprofiler_rules(configs_cp, folder_base,
               outfolder=directory(pat_fol_batch / 'run_{start}_{end}')
         container: container_cp
         threads: 1
+        resources:
+            mem='8G'
         shell:
-            ("cellprofiler -c -r -p {input.batchfile} -f {wildcards.start} -l {wildcards.end}"
-            " --do-not-write-schema --plugins-directory={input.plugins} -o {output.outfolder} || true")
+            """
+            set +e
+            cellprofiler -c -r -p {input.batchfile} -f {wildcards.start} -l {wildcards.end} \
+                --do-not-write-schema --plugins-directory={input.plugins} -o {output.outfolder}
+            exitcode=$?
+            if [ $exitcode -ge 0 ]
+            then
+                exit 0
+            else
+                exit 1
+            fi
+            """
 
     checkpoint cp_get_groups:
         input: pat_fn_batchfile,

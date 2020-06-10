@@ -9,7 +9,7 @@ if __name__ == '__main__':
         convertfolder2imcfolder.convert_folder2imcfolder(str(fn_zip),
                 out_folder=str(fol_ome),
                 dozip=False)
-    except:
+    except KeyError:
         fn_failed = pathlib.Path(fol_ome) / (pathlib.Path(fn_zip).stem + '.failed')
         with open(fn_failed, 'w') as f:
             traceback.print_exc(file=f)

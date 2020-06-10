@@ -1,6 +1,7 @@
 # Please look at the .schema.yml for documentation of the values
 input_data_folders:
-  - '/mnt/imls-bod/Zoidberg_Data/'
+  - 'resources/zips'
+#  - '/mnt/imls-bod/Zoidberg_Data/'
 input_file_regexp: '.*20190(5|6|7)[0-9]+_p17(3|6)_slide[0-9]+_ac[0-9]_vz.zip'
 
 csv_panel: config/pannel.csv
