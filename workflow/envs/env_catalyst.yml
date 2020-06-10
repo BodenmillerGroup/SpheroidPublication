@@ -1,0 +1,14 @@
+name: rcatalyst
+channels:
+  - bioconda
+  - conda-forge
+  - r
+  - defaults
+dependencies:
+  - bioconductor-catalyst=1.10
+  - r-irkernel
+  - r-dplyr
+  - r-data.table
+  - r-ggpmisc
+  - r-dtplyr
+  - r-stringr
