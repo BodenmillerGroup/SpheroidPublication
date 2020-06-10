@@ -9,3 +9,10 @@ csv_panel_metal: 'metal'
 csv_panel_ilastik: 'ilastik'
 csv_panel_full: 'full'
 csv_panel_sphereseg: 'sphereseg'
+
+compensation:
+  fns_compensation:
+    - '/mnt/imls-bod/Zoidberg_Data/20190618_bc126v1spillover_slide1_ac7_vz.zip'
+    - '/mnt/imls-bod/Zoidberg_Data/20190618_overexpressionv7spillover_slide1_ac3_vz.zip'
+  fn_ss_panel:
+    'resources/compensation_singlestain_panel.csv'

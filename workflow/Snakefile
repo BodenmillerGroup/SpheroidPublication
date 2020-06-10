@@ -1,5 +1,5 @@
-import urllib.request
 import pathlib
+import shutil
 
 from scripts import helpers as hpr
 from scripts.utils_alignment import variables as VarAlign
@@ -40,6 +40,13 @@ ilastik_mem_mb = config['ilastik_mem_mb']
 cellprofiler_container = config['cellprofiler_container']
 cp_plugins = config['cellprofiler_plugins']
 
+# Compensation
+fns_compensation_source = config['compensation']['fns_compensation']
+fns_compensation_ss_panel = config['compensation']['fn_ss_panel']
+folder_compensation_data =  pathlib.Path('resources') / 'compensation_data'
+fns_compensation = [folder_compensation_data / pathlib.Path(fn).name for fn in fns_compensation_source]
+re_fn_channel_csv = '.*_full\.csv'
+
 # Define hardcoded variables
 ## Define basic folder structrue
 folder_base = pathlib.Path('results')
@@ -66,9 +73,14 @@ folder_spherecrop_ifqcstack = folder_spherecrop / 'ifqc_stack'
 folder_spherecrop_ifqcprob = folder_spherecrop / 'ifqc_prob'
 folder_spherecrop_aligned = folder_spherecrop / 'aligned'
 
+
 folder_cp = folder_base / 'cpout'
 
 folder_classifiers = folder_base / 'classifiers'
+
+# Spillover output files
+fn_sm_mat = folder_base / 'sm.csv'
+folder_spherecrop_sms = folder_spherecrop / 'spillover_mats'
 
 ## Define Output files
 fn_image = folder_cp / 'Image.csv'
@@ -248,12 +260,6 @@ rule all_rawdata:
 def get_zip_fn(wildcards):
     return dict_zip_fns[wildcards.zipfol]
 
-rule retrieve_zip:
-    output: pat_fn_zip
-    params:
-        fn = get_zip_fn
-    shell:
-        'rsync -rt {params.fn} {output[0]}'
 
 # MCD to ome conversion
 rule mcdfolder2imcfolder:
@@ -332,13 +338,6 @@ rule ome2sphereseg:
     script:
           'scripts/imc2analysis.py'
 
-rule alignment_retrieve_slidescans:
-    input:
-        AlignmentConf.fol_slide_source
-    output:
-        directory(AlignmentConf.fol_slide)
-    shell:
-        'rsync -rt {input[0]}/ {output[0]}'
 
 rule alignment_get_ifslide_imcslide_transf:
     input:
@@ -410,6 +409,19 @@ rule alignment_align_imgs:
     notebook:
         'notebooks/alignment/2_run_trakem2_align.py.ipynb'
 
+rule compensation_prepare_sm:
+    input:
+        fns_compensation=fns_compensation,
+        fn_ss_panel=fns_compensation_ss_panel
+    output:
+        fn_sm_mat
+    conda:
+        'envs/env_catalyst.yml'
+    log:
+       'logs/compensation/imc_generatespillmat_long.r.ipynb'
+    notebook:
+        'notebooks/compensation/imc_generatespillmat_long.r.ipynb'
+
 
 ## Rules to target Cellprofiler batch runs
 define_cellprofiler_rules(config_dict_cp, folder_base, container_cp=cellprofiler_container)
@@ -428,3 +440,30 @@ rule sync_from_cluster:
 rule clean:
     shell:
         "rm -R {folder_base}"
+
+### Data retrieval
+
+rule retrieve_zip:
+    output: pat_fn_zip
+    params:
+          fn = get_zip_fn
+    shell:
+         'rsync -rt {params.fn} {output[0]}'
+
+rule alignment_retrieve_slidescans:
+    input:
+         AlignmentConf.fol_slide_source
+    output:
+          directory(AlignmentConf.fol_slide)
+    shell:
+         'rsync -rt {input[0]}/ {output[0]}'
+
+rule compensation_retrieve_data:
+    input:
+         fns_compensation_source
+    output:
+         fns_compensation
+    run:
+        for fn_in, fn_out in zip(input, output):
+            shutil.copy(fn_in, fn_out)
+

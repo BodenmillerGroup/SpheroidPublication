@@ -12,3 +12,6 @@ dependencies:
   - r-ggpmisc
   - r-dtplyr
   - r-stringr
+  - jupyter
+  - jupytext
+  - unzip
