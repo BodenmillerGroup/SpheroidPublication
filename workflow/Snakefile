@@ -69,10 +69,13 @@ folder_spherecrop_ilastik_h5 = folder_spherecrop / 'cell_ilastik_h5'
 folder_spherecrop_ilastik_prob = folder_spherecrop / 'cell_ilastik_prob'
 folder_spherecrop_mask = folder_spherecrop / 'cell_ilastik_mask'
 folder_spherecrop_ifstack = folder_spherecrop / 'if_stack'
-folder_spherecrop_ifqcstack = folder_spherecrop / 'ifqc_stack'
-folder_spherecrop_ifqcprob = folder_spherecrop / 'ifqc_prob'
 folder_spherecrop_aligned = folder_spherecrop / 'aligned'
+folder_spherecrop_dapiqc = folder_spherecrop / 'dapiqc'
 
+def fkt_fns_dapi(wildcards):
+    "Function to get all dapi images as input for the dapi qc"
+    checkpoints.alignment_align_imgs.get()
+    return [str(fn.resolve()) for fn in folder_spherecrop_aligned.glob('*_if_fcrop_c0_s2.tiff')]
 
 folder_cp = folder_base / 'cpout'
 
@@ -83,16 +86,23 @@ fn_sm_mat = folder_base / 'sm.csv'
 folder_spherecrop_sms = folder_spherecrop / 'spillover_mats'
 
 ## Define Output files
-fn_image = folder_cp / 'Image.csv'
-fn_cell = folder_cp / 'cell.csv'
-fn_experiment = folder_cp / 'Experiment.csv'
-fn_object_rel = folder_cp / 'Object\ relationships.csv'
+fn_cpout_image = folder_cp / 'Image.csv'
+fn_cpout_cell = folder_cp / 'cell.csv'
+fn_cpout_experiment = folder_cp / 'Experiment.csv'
+fn_cpout_cyto = folder_cp / 'cyto.csv'
+fn_cpout_nuclei = folder_cp / 'nuclei.csv'
+fn_cpout_nucleiexp = folder_cp / 'nucleiexp.csv'
+fn_cpout_relate = folder_cp / 'RelateObjects.csv'
+fn_cpout_objectrel = folder_cp / 'Object relationships.csv'
+folder_cpout_imgs = folder_cp / 'imgs'
+folder_cpout_masks = folder_cp /'masks'
 
 # Identify a dictionary of input folders/zips containing .mcd files to process
 dict_zip_fns = {fn.stem: fn for fn in hpr.get_filenames_by_re(input_data_folders, input_file_regexp)}
 
 # Produce a list of all cellprofiler output files
-cp_measurements_output = [fn_image, fn_cell, fn_experiment, fn_object_rel]
+cp_measurements_output = [fn_cpout_image, fn_cpout_cell, fn_cpout_experiment, fn_cpout_objectrel,
+                          fn_cpout_cyto, fn_cpout_nucleiexp, fn_cpout_nuclei, fn_cpout_relate]
 
 
 ## Define suffixes
@@ -195,6 +205,7 @@ config_dict_cp.update({
     }
 })
 
+
 class AlignmentConf:
     # Filename for the csv that matches slides and acquisitions.
     # Required columns: {VarAlign.SAMPLEBLOCK, VarAlign.SLIDENUMBER, VarAlign.SLIDE} - see example csv
@@ -247,9 +258,34 @@ class AlignmentConf:
     fn_scene_rcrop = fol_out_meta / 'dat_scene_rcrop.csv'
 
 
+config_dict_ilastik.update({
+    'ilastik_dapiqc':
+        {'project': 'resources/classifiers/if_dapi_qc.ilp',
+         'run_size': 10,
+         'output_format': 'tiff',
+         'output_filename': f'{{nickname}}{suffix_probablities}{suffix_tiff}',
+         'export_source': 'Probabilities',
+         'export_dtype': 'uint16',
+         'pipeline_result_drange': '"(0.0, 1.0)"',
+         'input_files': fkt_fns_dapi,
+         'output_pattern': directory(folder_spherecrop_dapiqc)
+         }
+
+})
+
+config_dict_cp.update({
+    'measure': dict(run_size=5,
+                           plugins=cp_plugins,
+                           pipeline='resources/cp_pipelines/6_measure_imccells.cppipe',
+                           input_files=[folder_spherecrop_aligned, folder_spherecrop_dapiqc, folder_spherecrop_tiff,
+                                        folder_spherecrop_sms, folder_spherecrop_ilastik_prob,
+                                        folder_spherecrop_mask],
+                           output_patterns={'.': cp_measurements_output, 'masks': directory(folder_cpout_masks),
+                                            'imgs': directory(folder_cpout_imgs)})}
+)
 # Target rules
 rule all:
-    input: folder_spherecrop_mask, folder_spherecrop_aligned
+    input: folder_spherecrop_mask, folder_spherecrop_aligned, folder_spherecrop_dapiqc, cp_measurements_output, folder_cpout_masks, folder_cpout_imgs
 
 rule all_before_alignment:
     input: folder_spherecrop_mask
@@ -382,7 +418,7 @@ rule alignment_prepare_data:
     notebook:
         'notebooks/alignment/1_prepare_data.py.ipynb'
 
-rule alignment_align_imgs:
+checkpoint alignment_align_imgs:
     input:
          fol_out_imgs=AlignmentConf.fol_out_imgs,
          fn_cords=AlignmentConf.fn_cords,
@@ -449,11 +485,11 @@ define_ilastik_rules(config_dict_ilastik, folder_base, threads=ilastik_threads,
 
 rule sync_to_cluster:
     shell:
-         'rsync -rtu /home/vitoz/mnt/tmp/scratch/vitoz/Git/SpheroidPublication/modules/phys vizano@cluster.s3it.uzh.ch:/data/vizano/Git/SpheroidPublication/modules --progress --exclude=".*"'
+         'rsync -rtu /home/vitoz/mnt/tmp/scratch/vitoz/Git/SpheroidPublication/modules/phys vizano@cluster.s3it.uzh.ch:/data/vizano/Git/SpheroidPublication/modules --progress --exclude=".*" --exclude="pkgs/" --exclude=".snakemake" --exclude="results/"'
 
 rule sync_from_cluster:
     shell:
-         'rsync -rtu vizano@cluster.s3it.uzh.ch:/data/vizano/Git/SpheroidPublication/modules/phys /home/vitoz/mnt/tmp/scratch/vitoz/Git/SpheroidPublication/modules  --progress --exclude=".*" --exclude="phys/resources/slidescanner"'
+         'rsync -rtu vizano@cluster.s3it.uzh.ch:/data/vizano/Git/SpheroidPublication/modules/phys /home/vitoz/mnt/tmp/scratch/vitoz/Git/SpheroidPublication/modules  --progress --exclude=".*" --exclude="phys/resources" --exclude "phys/pkgs"'
 rule clean:
     shell:
         "rm -R {folder_base}"

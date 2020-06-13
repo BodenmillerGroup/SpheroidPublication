@@ -19,8 +19,10 @@ def define_cellprofiler_rules(configs_cp, folder_base,
                             input_files_b, # input file definitions
                             input_filec_c
                             ),
-             'output_files': [pattern_a, # list of output file
-                              pattern_b], # patterns
+             'output_files': {'.': # Dictionary with folder location relative to
+                                    # output folder
+                                [pattern_a, # list of output file
+                              pattern_b]}, # patterns
     }
 
 
@@ -89,7 +91,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
                 with open(output[0], mode='w') as f:
                     fns_list = [inp for inp in params]
                     for pfn in fns_list:
-                        if isinstance(pfn, pathlib.Path):
+                        if isinstance(pfn,pathlib.Path):
                             if pfn.is_dir():
                                 fns = pfn.rglob('*')
                             else:
@@ -109,7 +111,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
                     message: 'Define CP pipeline output files'
                     threads: 1
                     params:
-                        subfol = subfol
+                          subfol = subfol
                     run:
                         shutil.move(pathlib.Path(input.fol_combined[0]) / params.subfol, output[0])
             else:
@@ -121,9 +123,9 @@ def define_cellprofiler_rules(configs_cp, folder_base,
                         message: 'Move CP pipeline output files'
                         threads: 1
                         params:
-                            subfol = subfol
+                              subfol = subfol
                         run:
-                            shutil.move(((pathlib.Path(input.fol_combined[0]) / params.subfol) / pathlib.Path(output[0])).resolve(),
+                            shutil.move(((pathlib.Path(input.fol_combined[0]) / params.subfol) / pathlib.Path(output[0]).name).resolve(),
                                         output[0])
 
     # Define Cellprofiler specific rules
@@ -158,21 +160,9 @@ def define_cellprofiler_rules(configs_cp, folder_base,
               outfolder=directory(pat_fol_batch / 'run_{start}_{end}')
         container: container_cp
         threads: 1
-        resources:
-            mem='8G'
         shell:
-            """
-            set +e
-            cellprofiler -c -r -p {input.batchfile} -f {wildcards.start} -l {wildcards.end} \
-                --do-not-write-schema --plugins-directory={input.plugins} -o {output.outfolder}
-            exitcode=$?
-            if [ $exitcode -ge 0 ]
-            then
-                exit 0
-            else
-                exit 1
-            fi
-            """
+            ("cellprofiler -c -r -p {input.batchfile} -f {wildcards.start} -l {wildcards.end}"
+            " --do-not-write-schema --plugins-directory={input.plugins} -o {output.outfolder} || true")
 
     checkpoint cp_get_groups:
         input: pat_fn_batchfile,
