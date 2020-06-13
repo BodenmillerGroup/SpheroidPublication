@@ -417,11 +417,28 @@ rule compensation_prepare_sm:
         fn_sm_mat
     conda:
         'envs/env_catalyst.yml'
+    resources:
+        mem='8G'
     log:
        'logs/compensation/imc_generatespillmat_long.r.ipynb'
     notebook:
         'notebooks/compensation/imc_generatespillmat_long.r.ipynb'
 
+rule compensation_adapt_sm:
+    input:
+         fn_sm_mat=fn_sm_mat,
+         fol_csvs=folder_sphere_full,
+         fol_sm_files=folder_spherecrop_tiff
+    output:
+          fol_out=directory(folder_spherecrop_sms)
+    params:
+         re_fns_full='.*_full_l[0-9]+_x[0-9]+_y[0-9]+\.tiff'
+    conda:
+         'envs/env_catalyst.yml'
+    log:
+       'logs/compensation/imc_adaptsm.r.ipynb'
+    notebook:
+        'notebooks/compensation/imc_adaptsm.r.ipynb'
 
 ## Rules to target Cellprofiler batch runs
 define_cellprofiler_rules(config_dict_cp, folder_base, container_cp=cellprofiler_container)
