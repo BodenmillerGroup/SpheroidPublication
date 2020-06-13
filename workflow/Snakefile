@@ -280,7 +280,8 @@ config_dict_cp.update({
                            input_files=[folder_spherecrop_aligned, folder_spherecrop_dapiqc, folder_spherecrop_tiff,
                                         folder_spherecrop_sms, folder_spherecrop_ilastik_prob,
                                         folder_spherecrop_mask],
-                           output_patterns={'.': cp_measurements_output, 'masks': directory(folder_cpout_masks),
+                           output_patterns={'.': cp_measurements_output,
+                                            'masks': directory(folder_cpout_masks),
                                             'imgs': directory(folder_cpout_imgs)})}
 )
 # Target rules
