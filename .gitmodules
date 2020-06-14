@@ -1,12 +1,12 @@
 [submodule "modules/oexp"]
-	path = modules/oexp
+	path = preprocessing/oexp
 	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
 	branch = oexp
 [submodule "modules/phys"]
-	path = modules/phys
+	path = preprocessing/phys
 	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
 	branch = phys
 [submodule "modules/bf"]
-	path = modules/bf
+	path = preprocessing/bf
 	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
 	branch = bf
