@@ -92,7 +92,7 @@ fn_cpout_experiment = folder_cp / 'Experiment.csv'
 fn_cpout_cyto = folder_cp / 'cyto.csv'
 fn_cpout_nuclei = folder_cp / 'nuclei.csv'
 fn_cpout_nucleiexp = folder_cp / 'nucleiexp.csv'
-fn_cpout_relate = folder_cp / 'RelateObjects.csv'
+#fn_cpout_relate = folder_cp / 'RelateObjects.csv'
 fn_cpout_objectrel = folder_cp / 'Object relationships.csv'
 folder_cpout_imgs = folder_cp / 'imgs'
 folder_cpout_masks = folder_cp /'masks'
@@ -102,7 +102,7 @@ dict_zip_fns = {fn.stem: fn for fn in hpr.get_filenames_by_re(input_data_folders
 
 # Produce a list of all cellprofiler output files
 cp_measurements_output = [fn_cpout_image, fn_cpout_cell, fn_cpout_experiment, fn_cpout_objectrel,
-                          fn_cpout_cyto, fn_cpout_nucleiexp, fn_cpout_nuclei, fn_cpout_relate]
+                          fn_cpout_cyto, fn_cpout_nucleiexp, fn_cpout_nuclei]
 
 
 ## Define suffixes
