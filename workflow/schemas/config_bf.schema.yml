@@ -19,7 +19,7 @@ properties:
 
   cellprofiler_plugins:
     type: string
-    default: ../../cp_plugins/ImcPluginsCP/plugins
+    default: resources/cp_plugins/ImcPluginsCP/plugins
     description: path to the default cellprofiler plugins to be used
     required: false
 
