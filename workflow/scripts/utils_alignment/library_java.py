@@ -1,6 +1,6 @@
 import jnius_config
 if not jnius_config.vm_running:
-    opt_str = f'-Xmx256g'
+    opt_str = f'-Xmx32g'
     jnius_config.add_options(opt_str)
 
 import imagej

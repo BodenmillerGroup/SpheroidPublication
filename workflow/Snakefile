@@ -440,8 +440,9 @@ checkpoint alignment_align_imgs:
         'envs/env_alignment.yml'
     log:
         'logs/alignment/2_run_trakem2_align.py.ipynb'
+    threads: 8
     resources:
-        mem='16G',
+        mem='32G',
         time='180'
     notebook:
         'notebooks/alignment/2_run_trakem2_align.py.ipynb'
