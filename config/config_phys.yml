@@ -1,8 +1,8 @@
 # Please look at the .schema.yml for documentation of the values
 cellprofiler_container: 'docker://cellprofiler/cellprofiler:3.1.8'
 input_data_folders:
-  - 'resources/zips'
-#  - '/mnt/imls-bod/Zoidberg_Data/'
+  - '/mnt/imls-bod/Zoidberg_Data/'
+#  - 'resources/zips'
 input_file_regexp: '.*20190(5|6|7)[0-9]+_p17(3|6)_slide[0-9]+_ac[0-9]_vz.zip'
 
 csv_panel: config/pannel.csv
