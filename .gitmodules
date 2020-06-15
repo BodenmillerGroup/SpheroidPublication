@@ -10,3 +10,7 @@
 	path = preprocessing/bf
 	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
 	branch = bf
+[submodule "analysis/phys"]
+	path = analysis/phys
+	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
+	branch = master
