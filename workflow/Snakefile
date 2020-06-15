@@ -3,6 +3,14 @@ import shutil
 
 from snakemake.utils import validate
 
+container: 'docker://votti/miniconda3mamba:mamba0.3.0'
+
+# Define dependency on preprocessing workflows
+subworkflow phys_preproc:
+    workdir:
+        "../../phys_preproc"
+    snakefile:
+        "../../phys_preproc/workflow/Snakefile"
 
 # Read Configuration
 configfile: 'config/config_phys_analysis.yml'
@@ -10,11 +18,22 @@ validate(config, "schemas/config_phys_analysis.schema.yml")
 
 # Extract variables from configuration
 ## Input/output
-
+fol_results = pathlib.Path('results')
+fol_resources = pathlib.Path('resources')
+fol_sp_config = fol_resources / 'spherpro_config'
+fn_panel_src = '../phys_preproc/config/panel.csv'
+fn_panel = fol_sp_config / 'panel.csv'
 # Target rules
 rule all:
-    input: folder_spherecrop_mask, folder_spherecrop_aligned, folder_spherecrop_dapiqc, cp_measurements_output, folder_cpout_masks, folder_cpout_imgs
+    input: fn_panel
 
+rule get_panel:
+    input: fn_panel_src
+    output: fn_panel
+    run:
+        shutil.copy(input[0], output[0])
+
+rule
 # Varia
 rule sync_to_cluster:
     shell:
