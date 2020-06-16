@@ -92,7 +92,6 @@ fn_cpout_experiment = folder_cp / 'Experiment.csv'
 fn_cpout_cyto = folder_cp / 'cyto.csv'
 fn_cpout_nuclei = folder_cp / 'nuclei.csv'
 fn_cpout_nucleiexp = folder_cp / 'nucleiexp.csv'
-#fn_cpout_relate = folder_cp / 'RelateObjects.csv'
 fn_cpout_objectrel = folder_cp / 'Object relationships.csv'
 folder_cpout_imgs = folder_cp / 'imgs'
 folder_cpout_masks = folder_cp /'masks'
@@ -491,7 +490,7 @@ rule sync_to_cluster:
 
 rule sync_from_cluster:
     shell:
-         'rsync -rtu vizano@cluster.s3it.uzh.ch:/data/vizano/Git/SpheroidPublication/modules/subworkflows/phys_preproc /home/vitoz/mnt/tmp/scratch/vitoz/Git/SpheroidPublication/subworkflows/  --progress --exclude=".*" --exclude="phys/resources" --exclude "phys/pkgs"'
+         'rsync -rtu vizano@cluster.s3it.uzh.ch:/data/vizano/Git/SpheroidPublication/subworkflows/phys_preproc /home/vitoz/mnt/tmp/scratch/vitoz/Git/SpheroidPublication/subworkflows/  --progress --exclude=".*" --exclude="phys/resources" --exclude "phys/pkgs"'
 rule clean:
     shell:
         "rm -R {folder_base}"

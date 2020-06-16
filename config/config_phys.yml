@@ -5,7 +5,7 @@ input_data_folders:
 #  - 'resources/zips'
 input_file_regexp: '.*20190(5|6|7)[0-9]+_p17(3|6)_slide[0-9]+_ac[0-9]_vz.zip'
 
-csv_panel: config/pannel.csv
+csv_panel: config/panel.csv
 csv_panel_metal: 'metal'
 csv_panel_ilastik: 'ilastik'
 csv_panel_full: 'full'
