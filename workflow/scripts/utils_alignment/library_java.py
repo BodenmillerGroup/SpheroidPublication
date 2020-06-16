@@ -5,7 +5,7 @@ if not jnius_config.vm_running:
 
 import imagej
 
-ij = imagej.init('sc.fiji:fiji', headless=True)
+ij = imagej.init('sc.fiji:fiji:2.0.0-pre-9')
 
 from jnius import autoclass, signatures, PythonJavaClass, java_method
 from jnius.reflect import JavaException
