@@ -1,0 +1,4 @@
+file_name,index,mass,channel_type
+BinStack,1,is-sphere,pixel_type
+BinStack,2,is-other,pixel_type
+BinStack,3,is-bg,pixel_type

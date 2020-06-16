@@ -1,5 +1,7 @@
 import pathlib
 import shutil
+import os
+import subprocess as subp
 
 from snakemake.utils import validate
 
@@ -23,6 +25,39 @@ fol_resources = pathlib.Path('resources')
 fol_sp_config = fol_resources / 'spherpro_config'
 fn_panel_src = '../phys_preproc/config/panel.csv'
 fn_panel = fol_sp_config / 'panel.csv'
+
+fn_sp_config = fol_sp_config / 'config.yml'
+fol_db = fol_results / 'db'
+fn_db = fol_db / 'spherpro.db'
+
+fn_db_preprocessed = fol_db / 'dbpreprocess.done'
+fn_db_manualqcapplied = fol_db / 'manualqcapplied.done'
+fn_db_debarcoded = fol_db / 'debarcoded.done'
+fn_db_bfqc = fol_db / 'bfqcapplied.done'
+fn_db_d2rim = fol_db / 'd2rimapplied.done'
+
+# all preprocessing files needed:
+folder_preproc_cp = pathlib.Path('results')
+folder_preproc_cp = folder_preproc_cp / 'cpout'
+## Define Output files
+fn_cpout_image = folder_preproc_cp / 'Image.csv'
+fn_cpout_cell = folder_preproc_cp / 'cell.csv'
+fn_cpout_experiment = folder_preproc_cp / 'Experiment.csv'
+fn_cpout_cyto = folder_preproc_cp / 'cyto.csv'
+fn_cpout_nuclei = folder_preproc_cp / 'nuclei.csv'
+fn_cpout_nucleiexp = folder_preproc_cp / 'nucleiexp.csv'
+fn_cpout_objectrel = folder_preproc_cp / 'Object relationships.csv'
+folder_cpout_imgs = folder_preproc_cp / 'imgs'
+folder_cpout_masks = folder_preproc_cp / 'masks'
+cp_measurements_output = [fn for fn in (fn_cpout_objectrel,
+                                        directory(folder_cpout_imgs), fn_cpout_image, fn_cpout_cell,
+                                        fn_cpout_experiment,
+                          fn_cpout_cyto, fn_cpout_nucleiexp, fn_cpout_nuclei,
+                           directory(folder_cpout_masks))]
+
+cp_measurements_output_srt = [phys_preproc(str(fn)) for fn in cp_measurements_output]
+
+
 # Target rules
 rule all:
     input: fn_panel
@@ -33,7 +68,56 @@ rule get_panel:
     run:
         shutil.copy(input[0], output[0])
 
-rule
+# TODO: also link ome folder!
+rule get_cpout:
+    input: cp_measurements_output_srt
+    output: cp_measurements_output
+    run:
+        folder_preproc_cp.mkdir(exist_ok=True)
+        for s, t in zip(input, output):
+            # Somehow shutil copytree and co failed
+            # likely to to a NFS related error. Resorting
+            # to this workaround.
+            cmd = f'rsync -rts "{s}" "{pathlib.Path(t).parent}"'
+            subp.check_call(str(cmd), shell=True)
+
+rule step2_init_database:
+    input:
+        fn_panel=fn_panel,
+        fn_config=fn_sp_config,
+        fns_cp = cp_measurements_output
+    output:
+        fn_db
+    conda: 'envs/spherpro_env.yml'
+    threads: 8
+    resources:
+             mem='32G',
+             time='60'
+    log:
+        'logs/alignment/2_initialize_spherbro.ipynb'
+    notebook:
+        'notebooks/2_initialize_spherbro.ipynb'
+
+rule step3_1_preprocess_db:
+    input:
+         fn_panel=fn_panel,
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fns_cp = cp_measurements_output
+    output:
+         touch(fn_db_preprocessed)
+    conda: 'envs/spherpro_env.yml'
+    threads: 8
+    resources:
+             mem='32G',
+             time='60'
+    log:
+       'logs/alignment/3_1_dbpreprocess.ipynb'
+    notebook:
+        'notebooks/3_1_dbpreprocess.ipynb'
+
+
+
 # Varia
 rule sync_to_cluster:
     shell:

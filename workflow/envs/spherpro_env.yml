@@ -12,6 +12,7 @@ dependencies:
   - ipykernel
   - ipywidgets
   - jinja2
+  - jupyter
   - libtiff
   - odo
   - pandas
@@ -24,6 +25,9 @@ dependencies:
   - scipy
   - sqlalchemy
   - matplotlib
+  - scanpy
+  - leidenalg
+  - jupytext
   - imctools=1.0.7
   - pip:
     - sqlalchemy-utils
@@ -34,4 +38,4 @@ dependencies:
     - git+https://github.com/blaze/odo.git
     - git+https://github.com/BodenmillerGroup/pycytools.git
     - git+https://github.com/BodenmillerGroup/spherpro.git
-    - '.'
+    - '../../'

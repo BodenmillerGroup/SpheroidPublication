@@ -1,0 +1,4 @@
+file_name,index,mass,channel_type
+ProbQc,1,prob-hq,pixel_prob
+ProbQc,2,prob-artifact,pixel_prob
+ProbQc,3,prob-background,pixel_prob

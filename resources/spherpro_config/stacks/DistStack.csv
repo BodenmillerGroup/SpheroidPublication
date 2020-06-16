@@ -1,0 +1,4 @@
+file_name,index,mass,channel_type
+DistStack,1,dist-sphere,pixel_dist
+DistStack,2,dist-other,pixel_dist
+DistStack,3,dist-bg,pixel_dist

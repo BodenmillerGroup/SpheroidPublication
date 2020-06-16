@@ -1,0 +1,11 @@
+Stack,Parent,ModificationName,ModificationPrefix,RefStack,FixScale
+BinStack,0,,,0,0
+DistStack,0,,,0,65536
+FullStack,0,,,0,0
+ProbSegmentation,0,,,0,0
+FullStackFiltered,FullStack,hotpixelfilter,filtered_,FullStack,0
+FullStackComp,FullStackFiltered,compensation,comp_,FullStack,0
+FullStackCompMedian,FullStackComp,compmedian,compmedian_,FullStack,0
+FullStackMedian,FullStackFiltered,median,median_,FullStack,0
+ProbQc,0,,,0,0
+IfStack,0,,,0,

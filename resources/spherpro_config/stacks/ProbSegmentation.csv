@@ -1,0 +1,4 @@
+file_name,index,mass,channel_type
+ProbSegmentation,1,prob-nucleus,pixel_prob
+ProbSegmentation,2,prob-cytoplasm,pixel_prob
+ProbSegmentation,3,prob-background,pixel_prob
