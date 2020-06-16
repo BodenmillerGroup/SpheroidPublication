@@ -41,7 +41,7 @@ def align_scene(slide, scene,
         libj.logger.stop()
 
     fn_proj = (fol_trakem2 / fn_align)
-    tproj.save_project(fn_proj, minimaps=False)
+    tproj.save_project(fn_proj)
     tproj.close_project()
     
 def get_scene_alignparams():
@@ -180,7 +180,7 @@ def align_crops(crop_path,
         libj.logger.stop()
 
     fn_proj = (fol_trakem2 / fn_align)
-    tproj.save_project(fn_proj, minimaps=False)
+    tproj.save_project(fn_proj)
     tproj.close_project()
 
 def get_params_from_project(path_project):
