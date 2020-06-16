@@ -1,7 +1,8 @@
-import jnius_config
-if not jnius_config.vm_running:
-    opt_str = f'-Xmx32g'
-    jnius_config.add_options(opt_str)
+import scyjava_config
+try:
+    scyjava_config.add_options('-Xmx32g')
+except ValueError:
+    pass
 
 import imagej
 
