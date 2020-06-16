@@ -70,7 +70,7 @@ folder_spherecrop_ilastik_prob = folder_spherecrop / 'cell_ilastik_prob'
 folder_spherecrop_mask = folder_spherecrop / 'cell_ilastik_mask'
 folder_spherecrop_ifstack = folder_spherecrop / 'if_stack'
 folder_spherecrop_aligned = folder_spherecrop / 'aligned'
-folder_spherecrop_dapiqc = folder_spherecrop / 'dapiqc'
+folder_spherecrop_dapiqc = folder_spherecrop / 'dapiqc_prob'
 
 def fkt_fns_dapi(wildcards):
     "Function to get all dapi images as input for the dapi qc"
@@ -139,7 +139,7 @@ config_dict_cp = {
 }
 
 config_dict_ilastik = {
-    'ilastik_spheres':
+    'spheres':
         {'project': 'resources/classifiers/sphere_segmentation.ilp',
          'run_size': 10,
          'output_format': 'tiff',
@@ -180,7 +180,7 @@ config_dict_cp.update({
 })
 
 config_dict_ilastik.update({
-    'ilastik_cells':
+    'cells':
         {'project': 'resources/classifiers/cell_segmentation.ilp',
          'run_size': 40,
          'output_format': 'tiff',
@@ -238,11 +238,11 @@ class AlignmentConf:
     # The output base folder
     fol_out_base = folder_base
     # The output folder for (partially) aligned images
-    fol_out_imgs = fol_out_base / 'imgs'
+    fol_out_imgs = fol_out_base / 'align_roughimgs'
     # The folder containing the derived metadata files
-    fol_out_meta = fol_out_base / 'meta'
+    fol_out_meta = fol_out_base / 'align_meta'
     # The folder used for Trakem2 projects
-    fol_out_trakem2 = fol_out_base / 'trakem2'
+    fol_out_trakem2 = fol_out_base / 'align_trakem2'
     # The estimated if-imc transformation matrix
     fn_transf_ifslide_imcslide = fol_out_meta / 'transform_ifslide_imcslide.txt'
     # The table containing the coordinates of the individual IMC acquisitions
@@ -258,7 +258,7 @@ class AlignmentConf:
 
 
 config_dict_ilastik.update({
-    'ilastik_dapiqc':
+    'dapiqc':
         {'project': 'resources/classifiers/if_dapi_qc.ilp',
          'run_size': 10,
          'output_format': 'tiff',
@@ -387,7 +387,7 @@ rule alignment_get_ifslide_imcslide_transf:
     container:
         'docker://votti/miniconda3mamba:openjdk8'
     log:
-        'logs/alignment/0_inital_coord_matching.py.ipynb'
+        notebook='logs/alignment/0_inital_coord_matching.py.ipynb'
     notebook:
         'notebooks/alignment/0_inital_coord_matching.py.ipynb'
 
@@ -414,7 +414,7 @@ rule alignment_prepare_data:
     conda:
         'envs/env_alignment.yml'
     log:
-       'logs/alignment/1_prepare_data.py.ipynb'
+       notebook='logs/alignment/1_prepare_data.py.ipynb'
     notebook:
         'notebooks/alignment/1_prepare_data.py.ipynb'
 
@@ -438,7 +438,7 @@ checkpoint alignment_align_imgs:
     conda:
         'envs/env_alignment.yml'
     log:
-        'logs/alignment/2_run_trakem2_align.py.ipynb'
+        notebook='logs/alignment/2_run_trakem2_align.py.ipynb'
     threads: 8
     resources:
         mem='32G',
@@ -457,7 +457,7 @@ rule compensation_prepare_sm:
     resources:
         mem='8G'
     log:
-       'logs/compensation/imc_generatespillmat_long.r.ipynb'
+       notebook='logs/compensation/imc_generatespillmat_long.r.ipynb'
     notebook:
         'notebooks/compensation/imc_generatespillmat_long.r.ipynb'
 
@@ -473,7 +473,7 @@ rule compensation_adapt_sm:
     conda:
          'envs/env_catalyst.yml'
     log:
-       'logs/compensation/imc_adaptsm.r.ipynb'
+       notebook='logs/compensation/imc_adaptsm.r.ipynb'
     notebook:
         'notebooks/compensation/imc_adaptsm.r.ipynb'
 
