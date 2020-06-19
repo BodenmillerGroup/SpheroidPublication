@@ -157,7 +157,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
              batchfile=pat_fn_batchfile,
              plugins=pat_fol_plugins
         output:
-              outfolder=directory(pat_fol_batch / 'run_{start}_{end}')
+              outfolder=temporary(directory(pat_fol_batch / 'run_{start}_{end}'))
         container: container_cp
         threads: 1
         resources:
@@ -188,7 +188,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
 
     checkpoint cp_combine_batch_output:
         input: fkt_fols_run  # function that retrieves all groups for a batch
-        output: directory(pat_fol_batch_combined)
+        output: temporary(directory(pat_fol_batch_combined))
         params:
               fkt_input=fkt_fols_run
         run:
