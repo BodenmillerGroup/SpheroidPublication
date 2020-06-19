@@ -1,12 +1,12 @@
 import scyjava_config
 try:
-    scyjava_config.add_options('-Xmx32g')
+    scyjava_config.add_options('-Xmx25g')
 except ValueError:
     pass
 
 import imagej
-
-ij = imagej.init('sc.fiji:fiji:2.0.0-pre-9')
+# Use fiji from container
+ij = imagej.init('/Fiji.app')
 
 from jnius import autoclass, signatures, PythonJavaClass, java_method
 from jnius.reflect import JavaException
@@ -179,8 +179,8 @@ class SlideImcAlignment(Trakem2Alignment):
                        True,
                        PatchFilter())
             self.update_layers()
-        except JavaException:
-            warnings.warn('Alignment failed - check the parameters!')
+        except JavaException as e:
+            warnings.warn(f'Alignment failed - check the parameters!\n {e}')
         return regal
 
 
