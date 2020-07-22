@@ -430,7 +430,7 @@ checkpoint alignment_align_imgs:
     params:
          channel_slide=AlignmentConf.channel_slide
     container:
-         'docker://votti/alignment:v1.6'
+         'docker://votti/alignment:v1.9'
     log:
         notebook='logs/alignment/2_run_trakem2_align.py.ipynb'
     threads: 8
