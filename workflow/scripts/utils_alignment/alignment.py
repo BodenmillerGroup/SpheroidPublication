@@ -60,7 +60,7 @@ def get_scene_alignparams():
     paramAffine.ppm.sift.fdBins = 8
     paramAffine.ppm.rod = 0.92
     paramAffine.ppm.clearCache = True
-    paramAffine.ppm.maxNumThreadsSift = 12
+    paramAffine.ppm.maxNumThreadsSift = 8
 
 
     paramAffine.minInlierRatio = 0.0
@@ -71,7 +71,7 @@ def get_scene_alignparams():
     paramAffine.identityTolerance = 5
     paramAffine.maxNumNeighbors = 1
     paramAffine.maxNumFailures = 3
-    paramAffine.maxNumThreads = 12
+    paramAffine.maxNumThreads = 8
 
     paramAffine.desiredModelIndex = 1
 
@@ -104,7 +104,7 @@ def get_crop_alignparms():
     paramAffine.ppm.sift.fdBins = 8
     paramAffine.ppm.rod = 0.92
     paramAffine.ppm.clearCache = True
-    paramAffine.ppm.maxNumThreadsSift = 12
+    paramAffine.ppm.maxNumThreadsSift = 8
 
     paramAffine.minInlierRatio = 0.0
     paramAffine.minNumInliers = 12
@@ -114,7 +114,7 @@ def get_crop_alignparms():
     paramAffine.identityTolerance = 5
     paramAffine.maxNumNeighbors = 1
     paramAffine.maxNumFailures = 3
-    paramAffine.maxNumThreads = 12
+    paramAffine.maxNumThreads = 8
 
     paramAffine.desiredModelIndex = 1
 
