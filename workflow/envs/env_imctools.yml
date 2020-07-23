@@ -6,5 +6,5 @@ dependencies:
   - imctools=1.0.7
   - jupyter
   - python=3.8
-  - tifffile
+  - tifffile=2019.7.26
 
