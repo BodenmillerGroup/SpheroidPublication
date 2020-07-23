@@ -94,7 +94,7 @@ rule step2_init_database:
              mem='32G',
              time='60'
     log:
-        'logs/alignment/2_initialize_spherbro.ipynb'
+        'logs/2_initialize_spherbro.ipynb'
     notebook:
         'notebooks/2_initialize_spherbro.ipynb'
 
@@ -112,7 +112,7 @@ rule step3_1_preprocess_db:
              mem='32G',
              time='60'
     log:
-       'logs/alignment/3_1_dbpreprocess.ipynb'
+       'logs/3_1_dbpreprocess.ipynb'
     notebook:
         'notebooks/3_1_dbpreprocess.ipynb'
 
