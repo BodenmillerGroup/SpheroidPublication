@@ -383,7 +383,7 @@ rule alignment_get_ifslide_imcslide_transf:
     output:
         fn_transf_ifslide_imcslide=AlignmentConf.fn_transf_ifslide_imcslide
     container:
-        'docker://votti/alignment:v1.4'
+        'docker://votti/alignment:v1.9'
     log:
         notebook='logs/alignment/0_inital_coord_matching.py.ipynb'
     notebook:
@@ -408,7 +408,7 @@ rule alignment_prepare_data:
           re_crop = AlignmentConf.re_crop,
           fn_crop_glob = AlignmentConf.fn_crop_glob
     container:
-        'docker://votti/alignment:v1.4'
+        'docker://votti/alignment:v1.9'
     log:
        notebook='logs/alignment/1_prepare_data.py.ipynb'
     notebook:
@@ -484,7 +484,7 @@ rule sync_to_cluster:
 
 rule sync_from_cluster:
     shell:
-         'rsync -rtu vizano@cluster.s3it.uzh.ch:/data/vizano/Git/SpheroidPublication/subworkflows/phys_preproc /mnt/scratch/vitoz/Git/SpheroidPublication/subworkflows/  --progress --exclude=".*" --exclude="phys/resources" --exclude "phys/pkgs" --exclude="results/align_trakem2"'
+         'rsync -rtu vizano@cluster.s3it.uzh.ch:/data/vizano/Git/SpheroidPublication/subworkflows/phys_preproc /mnt/scratch/vitoz/Git/SpheroidPublication/subworkflows/  --progress --exclude=".*" --exclude="phys_preproc/resources" --exclude "phys/pkgs"'
 rule clean:
     shell:
         "rm -R {folder_base}"
