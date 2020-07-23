@@ -1,54 +1,53 @@
-Tube Number,metal,Target,is_cc,spill,full,ilastik,sphereseg,working,looks working,rating,comment,goodname,Antibody Clone,Stock Concentration,Final Concentration / Dilution,uL to add
-0,Bi209,BC,0,0,1,0,0,0,0,0,,BC,BC,0,0.05 ug/mL,10
-1549,Dy161,Cyclin B1,1,1,1,1,0,1,1,1,nice nuclear,t-CyclinB1,GNS-11,500,8 ug/mL,22.4
-1057,Dy162,Vimentin,0,1,1,1,0,1,1,1,strong cellline specific,t-Vimentin,EPR3776,200,0.5 ug/mL,3.5
-1601,Dy163,Akt,0,1,1,0,0,1,1,1,celline specific,p-AKT [S473],D9E,500,5 ug/mL,14
-752,Dy164,Akt,0,1,1,0,0,1,1,0.5,rather ubitquitous,t-AKT,C67E7,200,5 ug/mL,35
-1501,Er166,Carbonic Anhydrase IX,0,1,1,1,0,1,1,1,"nice, cell line specific",t-CarbonicAnhydraseIX,polyclonal_CAIX,400,5 ug/mL,17.5
-969,Er167,GFP,0,1,1,0,0,0,0,0,"some cells in middle, some spillover",t-GFP,Polyclonal_GFP,100,8 ug/mL,112
-1375,Er168,Ki-67,1,1,1,1,0,1,,,"nice, cell line specific pattern",t-Ki-67,B56,400,3 ug/mL,10.5
-994,Er170,SAPK/JNK,0,1,1,0,0,1,0.5,0.5,"some single cells, but not clear if these are unspecific binding ones",p-JNK [T183/Y185],G9,300,5 ug/mL,23.3333333333333
-487,Eu151,EGFR,0,1,1,0,0,1,0.5,0.5,"not clear, diffuse",p-EGFR [Tyr1173],3G3.2,200,5 ug/mL,35
-1602,Eu153,Histone H3,1,1,1,1,0,1,1,1,single cells,p-HH3 [S28],HTA28,5,0.05 ug/mL,14
-1049,Gd155,c-erbB-2 - Her2,0,1,1,1,0,0,0.5,0.5,"sometimes rather memb, sometimes rather nuclear",p-Her2 [Y1196],D66B7,200,5 ug/mL,35
-1550,Gd156,p38 MAPK (pT180/pY182),0,1,1,1,0,1,0.5,0.5,"sigle cells, maybe",p-p38 [T180/Y182],36/p38 (pT180/pY182),500,5 ug/mL,14
-868,Gd158,Gsk3,0,1,1,1,0,1,1,1,"cell line specific, memb",p-Gsk3 [S9],D85E12,200,5 ug/mL,35
-754,Gd160,Survivin,0,1,1,1,1,1,1,1,nice nuclear,t-Survivin,71G4B7,200,5 ug/mL,35
-1220,Ho165,CDK1/Cdc2,1,1,1,0,0,1,0.5,0.5,"some structure, check data",p-CDK1 [Y15],44/Cdk1/Cdc2(pY15),200,8 ug/mL,56
-0,In113,BC,0,0,1,0,1,0,1,1,,BC,In,0,0 ug/mL,NaN
-0,In115,BC,0,0,1,0,1,0,1,1,,BC,In,0,0 ug/mL,NaN
-0,Ir191,Iridium,0,0,0,0,0,0,1,1,,Iridium,Ir,0,0 ug/mL,NaN
-0,Ir193,DNA,0,1,1,1,1,1,1,1,,t-DNA,DNA,0,0.05 ug/mL,13
-1387,La139,H3K27me3,0,1,1,1,1,1,1,1,beautiy!,met-HH3 [K27],C36B11,400,3 ug/mL,10.5
-1348,Lu175,Rb,1,1,1,1,1,1,1,1,beautiy!,p-Rb [S807/S811],D20B12,200,2.5 ug/mL,17.5
-1603,Nd142,EGFR,0,1,1,0,0,1,1,0.5,"some single cells, high background",t-EGFR,D38B1,500,8 ug/mL,22.4
-1600,Nd143,Fak,0,1,1,0,0,1,1,0.8,higher in some sphere centers,p-FAK [Y397],polyclonal_Fak,500,8 ug/mL,22.4
-684,Nd144,MEK1/2,0,1,1,0,1,1,0.5,0.5,quite uniform,p-MEK1/2 [S217/S221],41G9,100,5 ug/mL,70
-1210,Nd145,MAPKAPK-2,0,1,1,1,0,1,1,1,beautiy!,p-MAPKAPK2 [T334],27B7,300,2 ug/mL,9.33333333333333
-1599,Nd146,S6K,0,1,1,1,0,1,1,0.5,"higher at border, nuclear",p-p70S6K [T389],1A5,500,5 ug/mL,14
-1048,Nd148,Stat1,0,1,1,1,0,1,1,1,nuclear,p-Stat1 [S727],polyclonal_pStat1,200,5 ug/mL,35
-1573,Nd150,CD44,0,1,1,1,0,1,1,1,"nice, cell line specific",t-CD44,IM7,500,5 ug/mL,14
-0,Pd102,BC,0,0,1,0,1,0,1,1,,BC,BC,0,0.05 ug/mL,0
-0,Pd104,BC,0,0,1,0,1,0,1,1,,BC,BC,0,0.05 ug/mL,1
-0,Pd105,BC,0,0,1,0,1,0,1,1,,BC,BC,0,0.05 ug/mL,2
-0,Pd106,BC,0,0,1,0,1,0,1,1,,BC,BC,0,0.05 ug/mL,3
-0,Pd108,BC,0,0,1,0,1,0,1,1,,BC,BC,0,0.05 ug/mL,4
-0,Pd110,BC,0,0,1,0,1,0,1,1,,BC,BC,0,0.05 ug/mL,5
-558,Pr141,Histone H3,0,1,1,1,0,1,1,0.8,actually quite nice!,t-HH3,D1H2,200,5 ug/mL,35
-0,Pt194,BC,0,1,1,0,1,0,1,1,,BC,BC,0,0.05 ug/mL,11
-0,Pt195,BC,0,0,1,0,0,0,0,0,,BC,BC,0,0.05 ug/mL,12
-0,Pt198,BC,0,0,0,0,0,0,0,0,,BC,BC,0,0.05 ug/mL,11
-0,Rh103,BC,0,0,1,0,0,0,0,0,,BC,BC,0,0.05 ug/mL,9
-1362,Sm147,Aurora B (Thr232) phosphate,1,1,1,1,0,1,1,1,higher in some sphere,p-AuroraB [T232],D13A11,200,8 ug/mL,56
-1178,Sm149,p53,0,1,1,1,0,1,1,1,single cells,p-p53 [S15],16G8,200,5 ug/mL,35
-974,Sm152,AMPK alpha,0,1,1,1,0,1,1,1,single cells,p-AMPKalpha [T172],40H9,200,5 ug/mL,35
-1386,Sm154,Erk1/2,0,1,1,0,0,1,0.5,0.5,"not clear, diffuse",p-Erk1/2 [T202/Y204],20A,500,5 ug/mL,14
-849,Tb159,c-erbB-2 - Her2,0,1,1,0,0,1,0.5,0.5,diffuse,t-HER2,D8F12,400,5 ug/mL,17.5
-0,Te125,Telox2,0,1,1,0,0,0,1,0,,Telox2,Telox2,0,0 ug/mL,0
-801,Tm169,GFP,0,1,1,0,0,0,0,0,some cells in middle,t-GFP,FM264G,200,8 ug/mL,56
-0,Y89,BC,0,0,1,0,0,0,0,0,,BC,BC,0,0.05 ug/mL,8
-1116,Yb171,S6,0,1,1,1,1,1,1,1,nice!,p-S6 [S235/S236],D57.2.2E,200,1 ug/mL,7
-627,Yb172,Cleaved Caspase3,0,1,1,0,0,1,1,1,some csingle cells,cleaved-Caspase3,C92-605,143,5 ug/mL,48.951048951049
-342,Yb173,Stat3,0,1,1,0,0,1,0.1,0.1,"ubiquitous, rather not working",p-Stat3 [Y705],4/pStat3,200,5 ug/mL,35
-207,Yb174,cleaved PARP,0,1,1,1,0,1,1,1,single cells,cleaved-PARP,F21-852,100,2 ug/mL,28
-910,Yb176,DYKDDDDK Tag,0,1,1,0,0,0,0,0,background,t-DYKDDDDK,L5,200,8 ug/mL,56
+Tube Number,metal,Target,is_cc,spill,full,ilastik,sphereseg,working,looks working,rating,goodname,comment,Antibody Clone,Stock Concentration,Final Concentration / Dilution,uL to add,gene,ambiguous_gene,modification,residue
+0,Bi209,BC,0,1,1,0,1,0,1,1,BC,,BC,0,0.05 ug/mL,10,,,,
+1549,Dy161,Cyclin B1,1,1,1,1,0,1,1,,t-CyclinB1,bit low but working,GNS-11,500,8 ug/mL,22.4,CCNB1,0,t,
+1057,Dy162,Vimentin,0,1,1,1,0,1,1,,t-Vimentin,looks working,EPR3776,200,0.5 ug/mL,3.5,VIM,0,t,
+1601,Dy163,Akt,0,1,1,0,0,1,1,,p-AKT [S473],high in overexpression,D9E,500,5 ug/mL,14,AKT1,1,p,S473
+752,Dy164,Akt,0,1,1,0,0,1,1,,t-AKT,high in overexpression,C67E7,200,5 ug/mL,35,AKT1,1,t,
+1501,Er166,Carbonic Anhydrase IX,0,1,1,0,0,1,0,0.5,t-CarbonicAnhydraseIX,weak as allways in HEK,polyclonal_CAIX,400,5 ug/mL,17.5,CA9,0,t,
+969,Er167,GFP,0,1,1,0,0,1,1,0.5,t-GFP 1,high in overexpression BUT also quite high background,Polyclonal_GFP,100,8 ug/mL,112,GFP 1,0,t,
+1375,Er168,Ki-67,1,1,1,1,0,1,1,1,t-Ki-67,nice,B56,400,3 ug/mL,10.5,MKI67,0,t,
+994,Er170,SAPK/JNK,0,1,1,0,0,1,1,,p-JNK [T183/Y185],specific in some overexpressions,G9,300,5 ug/mL,23.3333333333333,MAPK8,1,p,Y183/Y185
+487,Eu151,EGFR,0,1,1,0,0,1,1,0.5,p-EGFR [Tyr1173],"wait for analyis, potentially single cells",3G3.2,200,5 ug/mL,35,EGFR,0,p,Y117
+1602,Eu153,Histone H3,1,1,1,1,0,1,1,,p-HH3 [S28],"nice, well titrated",HTA28,5,0.05 ug/mL,14,HIST1H3A,0,p,S28
+1049,Gd155,c-erbB-2 - Her2,0,1,1,1,0,1,1,,p-Her2 [Y1196],gives a structure,D66B7,200,5 ug/mL,35,ERBB2,0,p,Y1196
+1550,Gd156,p38 MAPK (pT180/pY182),0,1,1,1,0,1,1,,p-p38 [T180/Y182],"maybe,looks like something",36/p38 (pT180/pY182),500,5 ug/mL,14,MAPK11,1,p,T180/Y182
+868,Gd158,Gsk3,0,1,1,0,0,1,1,0.5,p-Gsk3 [S9],"maybe, wait for analysis",D85E12,200,5 ug/mL,35,GSK3B,0,p,S9
+754,Gd160,Survivin,0,1,1,1,1,1,1,,t-Survivin,nuclear,71G4B7,200,5 ug/mL,35,BIRC5,0,t,
+1220,Ho165,CDK1/Cdc2,1,1,1,0,0,1,1,0,p-CDK1 [Y15],high background!!!,44/Cdk1/Cdc2(pY15),200,8 ug/mL,56,CDK1,0,p,Y15
+0,In113,BC,0,1,1,0,1,0,1,,BC,,In,0,0 ug/mL,NaN,,,,
+0,In115,BC,0,1,1,0,1,0,1,,BC,,In,0,0 ug/mL,NaN,,,,
+0,Ir191,Iridium,0,0,1,0,0,0,1,1,Iridium,,Ir,0,0 ug/mL,NaN,,,,
+0,Ir193,DNA,0,1,1,1,1,1,1,,t-DNA,good!,DNA,0,0.05 ug/mL,13,,,,
+1387,La139,H3K27me3,0,1,1,1,1,1,1,1,met-HH3 [K27],,C36B11,400,3 ug/mL,10.5,HIST1H3A,0,modification,K27
+1348,Lu175,Rb,1,1,1,1,0,1,1,1,p-Rb [S807/S811],nice,D20B12,200,2.5 ug/mL,17.5,RB1,0,p,S807/S811
+1603,Nd142,EGFR,0,1,1,0,0,1,1,1,t-EGFR,specific in some overexpressions,D38B1,500,8 ug/mL,22.4,EGFR,0,t,
+1600,Nd143,Fak,0,1,1,0,0,1,1,0.5,p-FAK [Y397],no clear signal,polyclonal_Fak,500,8 ug/mL,22.4,PTK2,0,p,Y397
+684,Nd144,MEK1/2,0,1,1,0,0,1,1,0.5,p-MEK1/2 [S217/S221],"maybe, look at analysis",41G9,100,5 ug/mL,70,MAP2K1,1,p,S217/221
+1210,Nd145,MAPKAPK-2,0,1,1,1,1,1,1,1,p-MAPKAPK2 [T334],nice!,27B7,300,2 ug/mL,9.33333333333333,MAPKAPK2,0,p,T334
+1599,Nd146,S6K,0,1,1,0,0,1,1,0.5,p-p70S6K [T389],maybe,1A5,500,5 ug/mL,14,RPS6KB1,0,p,T389
+1048,Nd148,Stat1,0,1,1,1,0,1,1,,p-Stat1 [S727],single cells,polyclonal_pStat1,200,5 ug/mL,35,STAT1,0,p,S727
+1573,Nd150,CD44,0,1,1,1,0,1,1,1,t-CD44,weak but working in HEK,IM7,500,5 ug/mL,14,CD44,1,t,
+0,Pd102,BC,0,0,1,0,0,0,0,0,BC,,BC,0,0.05 ug/mL,0,,,,
+0,Pd104,BC,0,0,1,0,0,0,0,0,BC,,BC,0,0.05 ug/mL,1,,,,
+0,Pd105,BC,0,1,1,0,1,0,1,1,BC,,BC,0,0.05 ug/mL,2,,,,
+0,Pd106,BC,0,1,1,0,1,0,1,1,BC,,BC,0,0.05 ug/mL,3,,,,
+0,Pd108,BC,0,1,1,0,1,0,1,1,BC,,BC,0,0.05 ug/mL,4,,,,
+0,Pd110,BC,0,1,1,0,1,0,1,1,BC,,BC,0,0.05 ug/mL,5,,,,
+558,Pr141,Histone H3,0,1,1,1,0,1,0,0.1,t-HH3,"really bad, washed",D1H2,200,5 ug/mL,35,HIST1H3A,0,t,
+0,Pt194,BC,0,1,1,0,1,0,1,1,BC,to strong...,BC,0,0.05 ug/mL,11,,,,
+0,Pt195,BC,0,0,1,0,0,0,1,,BC,,BC,0,0.05 ug/mL,12,,,,
+0,Pt198,BC,0,1,1,0,1,0,1,,BC,to strong...,BC,0,0.05 ug/mL,11,,,,
+0,Rh103,BC,0,1,1,0,1,0,1,1,BC,,BC,0,0.05 ug/mL,9,,,,
+1362,Sm147,Aurora B (Thr232) phosphate,1,1,1,0,0,1,1,1,p-AuroraB [T232],"working, has bg",D13A11,200,8 ug/mL,56,AURKB,1,p,T232
+1178,Sm149,p53,0,1,1,0,0,1,1,0.1,p-p53 [S15],"wait analysis, does not look working",16G8,200,5 ug/mL,35,TP53,0,p,S15
+974,Sm152,AMPK alpha,0,1,1,1,0,1,1,1,p-AMPKalpha [T172],nice!,40H9,200,5 ug/mL,35,PRKAA2,0,p,T172
+1386,Sm154,Erk1/2,0,1,1,0,0,1,1,0.5,p-Erk1/2 [T202/Y204],wait for analyis,20A,500,5 ug/mL,14,MAPK3,1,p,T202/Y204
+849,Tb159,c-erbB-2 - Her2,0,1,1,0,0,1,1,,t-HER2,high in overexpression,D8F12,400,5 ug/mL,17.5,ERBB2,0,t,
+801,Tm169,GFP,0,1,1,0,0,1,1,1,t-GFP 2,excellent,FM264G,200,8 ug/mL,56,GFP 2,0,t,
+0,Y89,BC,0,1,1,0,1,0,1,1,BC,,BC,0,0.05 ug/mL,8,,,,
+1116,Yb171,S6,0,1,1,1,1,1,1,1,p-S6 [S235/S236],nice,D57.2.2E,200,1 ug/mL,7,RPS6,0,p,S235/S236
+627,Yb172,Cleaved Caspase3,0,1,1,0,0,1,0.5,,cleaved-Caspase3,quite ugly :(,C92-605,143,5 ug/mL,48.951048951049,CASP3,0,c,
+342,Yb173,Stat3,0,1,1,0,0,1,1,,p-Stat3 [Y705],nice single cells,4/pStat3,200,5 ug/mL,35,STAT3,0,p,Y705
+207,Yb174,cleaved PARP,0,1,1,1,0,1,1,1,cleaved-PARP,some single cells,F21-852,100,2 ug/mL,28,PARP1,0,c,
+910,Yb176,DYKDDDDK Tag,0,1,1,0,0,1,1,1,t-DYKDDDDK,nice,L5,200,8 ug/mL,56,DYKDDDDK,0,t,
