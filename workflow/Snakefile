@@ -119,7 +119,7 @@ suffix_sphereseg = '_sphereseg'
 
 ## Define derived file patterns
 pat_fn_zip = folder_zip / ('{zipfol}' + '.zip')
-pat_fn_mcdparse_done = folder_base / 'zips' / ('{zipfol}' + suffix_done)
+pat_fn_mcdparse_done = folder_zip/ ('{zipfol}' + suffix_done)
 fn_all_mcd_converted = folder_base / 'all_mcd_converted.done'
 
 ## Init dirs
@@ -211,7 +211,7 @@ class AlignmentConf:
     fn_slidematch = pathlib.Path('resources/20190506_bigstain_selection_final_if_imcalign_v1.csv')
 
     # The folder containing the slide scans
-    fol_slide_source = pathlib.Path('/mnt/bbvolume/server_homes/vitoz/mnt/tmp/scratch/vitoz/archive/vitoz/RawData/slidescanner_uncompressed/slidescanner_transfer_20190510_0015/')
+    fol_slide_source = pathlib.Path('/mnt/scratch/vitoz/archive/vitoz/RawData/slidescanner_uncompressed/slidescanner_transfer_20190510_0015/')
     fol_slide = pathlib.Path('resources/slidescanner/')
 
     # The folder containing the IMC images converted to ometiff
