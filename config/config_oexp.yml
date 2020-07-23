@@ -4,7 +4,7 @@ ilastik_container: 'docker://votti/ilastik:1.3.2b3'
 input_data_folders:
   - 'resources/zips'
   - '/mnt/imls-bod/Zoidberg_Data/'
-input_file_regexp: '.*20190(5|6|7)[0-9]+_p17(3|6)_slide[0-9]+_ac[0-9]_vz.zip'
+input_file_regexp: '.*20190(5|6|7)[0-9]+_p16(1|5)_slide[0-9]+_ac[0-9]_vz.zip'
 
 csv_panel: config/panel.csv
 csv_panel_metal: 'metal'

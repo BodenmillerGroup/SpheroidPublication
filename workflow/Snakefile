@@ -13,7 +13,7 @@ container: 'docker://votti/miniconda3mamba:mamba0.3.0'
 container_imctools = 'docker://votti/imctools:v1.0.7'
 
 # Read Configuration
-configfile: 'config/config_phys.yml'
+configfile: 'config/config_oexp.yml'
 validate(config, "schemas/config_phys.schema.yml")
 
 # Extract variables from configuration
