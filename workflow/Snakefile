@@ -9,7 +9,7 @@ from snakemake.utils import validate
 include: 'rules/cellprofiler.smk'
 include: 'rules/ilastik.smk'
 
-container: 'docker://votti/miniconda3mamba:mamba0.3.0'
+container: 'docker://votti/miniconda3mamba:v0.4.2'
 container_imctools = 'docker://votti/imctools:v1.0.7'
 
 # Read Configuration
