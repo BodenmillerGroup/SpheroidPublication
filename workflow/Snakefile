@@ -71,8 +71,16 @@ folder_spherecrop_mask = folder_spherecrop / 'cell_ilastik_mask'
 folder_spherecrop_ifstack = folder_spherecrop / 'if_stack'
 folder_spherecrop_aligned = folder_spherecrop / 'aligned'
 folder_spherecrop_dapiqc = folder_spherecrop / 'dapiqc_prob'
+folder_spherecrop_gfp = folder_spherecrop / 'gfp_stacks'
+folder_spherecrop_probpos = folder_spherecrop / 'gfp_prob'
+folder_spherecrop_probposgfpif = folder_spherecrop / 'gfpif_prob'
 
 def fkt_fns_dapi(wildcards):
+    "Function to get all dapi images as input for the dapi qc"
+    checkpoints.alignment_align_imgs.get()
+    return [str(fn.resolve()) for fn in folder_spherecrop_aligned.glob('*_if_fcrop_c1_s2.tiff')]
+
+def fkt_fns_gfp2x(wildcards):
     "Function to get all dapi images as input for the dapi qc"
     checkpoints.alignment_align_imgs.get()
     return [str(fn.resolve()) for fn in folder_spherecrop_aligned.glob('*_if_fcrop_c0_s2.tiff')]
@@ -119,7 +127,7 @@ suffix_sphereseg = '_sphereseg'
 
 ## Define derived file patterns
 pat_fn_zip = folder_zip / ('{zipfol}' + '.zip')
-pat_fn_mcdparse_done = folder_zip/ ('{zipfol}' + suffix_done)
+pat_fn_mcdparse_done = folder_ome / ('{zipfol}' + suffix_done)
 fn_all_mcd_converted = folder_base / 'all_mcd_converted.done'
 
 ## Init dirs
@@ -168,7 +176,7 @@ config_dict_cp.update({
                         folder_sphere_ilastik, folder_sphere_align,
                         folder_sphereseg_ilastik_prob],
         'output_patterns': {'.': directory(folder_spherecrop_tiff)},
-        'resources': {'mem': '8G'}
+        'resources': {'mem_mb': 16000}
     },
     'prepare_cellilastik': {
         'run_size': 40,
@@ -218,7 +226,7 @@ class AlignmentConf:
     fol_imc = folder_ome
 
     # The channel number used for alignment of the slidescan (i.e. the DAPI channel)
-    channel_slide = 0
+    channel_slide = 1
 
     # The folder containing the (uncroped) img images to be aligned
     # These should be grayscale images that mimic the DNA channel (eg slightly smoothed Iridium)
@@ -257,6 +265,15 @@ class AlignmentConf:
     fn_scene_rcrop = fol_out_meta / 'dat_scene_rcrop.csv'
 
 
+config_dict_cp.update({
+    'prepare_ilastikgfp': {
+        'run_size': 20,
+        'plugins': cp_plugins,
+        'pipeline': 'resources/cp_pipelines/4_2_prepareilastik_imcspheres_gfp.cppipe',
+        'input_files': [folder_spherecrop_tiff, folder_spherecrop_aligned, folder_spherecrop_sms],
+        'output_patterns': {'.': directory(folder_spherecrop_gfp)},
+    }
+})
 config_dict_ilastik.update({
     'dapiqc':
         {'project': 'resources/classifiers/if_dapi_qc.ilp',
@@ -268,7 +285,29 @@ config_dict_ilastik.update({
          'pipeline_result_drange': '"(0.0, 1.0)"',
          'input_files': fkt_fns_dapi,
          'output_pattern': directory(folder_spherecrop_dapiqc)
-         }
+         },
+    'propposclass':
+        {'project': 'resources/classifiers/gfp_classifier.ilp',
+         'run_size': 50,
+         'output_format': 'tiff',
+         'output_filename': f'{{nickname}}{suffix_probablities}{suffix_tiff}',
+         'export_source': 'Probabilities',
+         'export_dtype': 'uint16',
+         'pipeline_result_drange': '"(0.0, 1.0)"',
+         'input_files': folder_spherecrop_gfp,
+         'output_pattern': directory(folder_spherecrop_probpos)
+         },
+    'gfp2xclass':
+    {'project': 'resources/classifiers/if_gfp_positive.ilp',
+     'run_size': 100,
+     'output_format': 'tiff',
+     'output_filename': f'{{nickname}}{suffix_probablities}{suffix_tiff}',
+     'export_source': 'Probabilities',
+     'export_dtype': 'uint16',
+     'pipeline_result_drange': '"(0.0, 1.0)"',
+     'input_files': fkt_fns_gfp2x,
+     'output_pattern': directory(folder_spherecrop_probposgfpif)
+     }
 
 })
 
@@ -278,6 +317,7 @@ config_dict_cp.update({
                            pipeline='resources/cp_pipelines/6_measure_imccells.cppipe',
                            input_files=[folder_spherecrop_aligned, folder_spherecrop_dapiqc, folder_spherecrop_tiff,
                                         folder_spherecrop_sms, folder_spherecrop_ilastik_prob,
+                                        folder_spherecrop_probpos, folder_spherecrop_probposgfpif,
                                         folder_spherecrop_mask],
                            output_patterns={'.': cp_measurements_output,
                                             'masks': directory(folder_cpout_masks),
@@ -305,10 +345,9 @@ rule mcdfolder2imcfolder:
     threads: 1
     params:
         fol_ome = folder_ome
-    conda:
-        'envs/env_imctools.yml'
     resources:
-        mem='16G'
+        mem_mb=lambda wildcards, attempt: (attempt * 16000),
+        time='60'
     container: container_imctools
     script:
         'scripts/convert_imcfolder.py'
@@ -332,8 +371,8 @@ rule ome2full:
         min_imgsize = img_minsize
     output:
         directory(folder_sphere_full)
-    conda:
-         'envs/env_imctools.yml'
+    resources:
+        mem_mb=16000
     container: container_imctools
     script:
         'scripts/imc2analysis.py'
@@ -345,9 +384,9 @@ rule ome2ilastik:
         done = fn_all_mcd_converted
     output:
         directory(folder_sphere_ilastik)
-    conda:
-         'envs/env_imctools.yml'
     container: container_imctools
+    resources:
+        mem_mb=16000
     params:
         column_used = 'ilastik',
         column_metal = csv_panel_metal,
@@ -363,8 +402,6 @@ rule ome2sphereseg:
          done = fn_all_mcd_converted
     output:
           directory(folder_sphereseg_ilastik)
-    conda:
-         'envs/env_imctools.yml'
     container: container_imctools
     params:
           column_used = 'sphereseg',
@@ -411,6 +448,10 @@ rule alignment_prepare_data:
         'docker://votti/alignment:v1.4'
     log:
        notebook='logs/alignment/1_prepare_data.py.ipynb'
+    threads: 4
+    resources:
+        mem='64G',
+        time='180'
     notebook:
         'notebooks/alignment/1_prepare_data.py.ipynb'
 
@@ -435,7 +476,7 @@ checkpoint alignment_align_imgs:
         notebook='logs/alignment/2_run_trakem2_align.py.ipynb'
     threads: 8
     resources:
-        mem='32G',
+        mem='64G',
         time='180'
     notebook:
         'notebooks/alignment/2_run_trakem2_align.py.ipynb'
@@ -446,8 +487,7 @@ rule compensation_prepare_sm:
         fn_ss_panel=fns_compensation_ss_panel
     output:
         fn_sm_mat
-    conda:
-        'envs/env_catalyst.yml'
+    container: 'docker://votti/catalyst:v1.10'
     resources:
         mem='8G'
     log:
