@@ -504,8 +504,7 @@ rule compensation_adapt_sm:
           fol_out=directory(folder_spherecrop_sms)
     params:
          re_fns_full='.*_full_l[0-9]+_x[0-9]+_y[0-9]+\.tiff'
-    conda:
-         'envs/env_catalyst.yml'
+    container: 'docker://votti/catalyst:v1.10'
     log:
        notebook='logs/compensation/imc_adaptsm.r.ipynb'
     notebook:
