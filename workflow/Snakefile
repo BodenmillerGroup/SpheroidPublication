@@ -69,17 +69,17 @@ rule get_panel:
         shutil.copy(input[0], output[0])
 
 # TODO: also link ome folder!
-rule get_cpout:
-    input: cp_measurements_output_srt
-    output: cp_measurements_output
-    run:
-        folder_preproc_cp.mkdir(exist_ok=True)
-        for s, t in zip(input, output):
-            # Somehow shutil copytree and co failed
-            # likely to to a NFS related error. Resorting
-            # to this workaround.
-            cmd = f'rsync -rts "{s}" "{pathlib.Path(t).parent}"'
-            subp.check_call(str(cmd), shell=True)
+#rule get_cpout:
+#    input: cp_measurements_output_srt
+#    output: cp_measurements_output
+#    run:
+#        folder_preproc_cp.mkdir(exist_ok=True)
+#        for s, t in zip(input, output):
+#            # Somehow shutil copytree and co failed
+#            # likely to to a NFS related error. Resorting
+#            # to this workaround.
+#            cmd = f'rsync -rts "{s}" "{pathlib.Path(t).parent}"'
+#            subp.check_call(str(cmd), shell=True)
 
 rule step2_init_database:
     input:
