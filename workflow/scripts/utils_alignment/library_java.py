@@ -104,7 +104,7 @@ class Trakem2Alignment:
         #while len([1 for f in futures if f.isDone() == 0]) > 0:
         #    time.sleep(0.5)
 
-    def save_project(self, fn_proj, minimaps=True, overwrite=True):
+    def save_project(self, fn_proj, minimaps=False, overwrite=True):
         if minimaps:
             self.recreate_minimaps()
         self.project.saveAs(str(fn_proj), overwrite)
