@@ -516,14 +516,15 @@ define_ilastik_rules(config_dict_ilastik, folder_base, threads=ilastik_threads,
                      mem_mb=ilastik_mem_mb, container_ilastik=ilastik_container)
 
 ### Varia
-
+fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
+fol_cluster = pathlib.Path('vizano@cluster.s3it.uzh.ch:/scratch/vizano/SpheroidPublication')
 rule sync_to_cluster:
     shell:
-         'rsync -rtu /mnt/scratch/vitoz/Git/SpheroidPublication/subworkflows/oexp_preproc vizano@cluster.s3it.uzh.ch:/data/vizano/Git/SpheroidPublication/subworkflows/ --progress --exclude=".*" --exclude="pkgs/" --exclude=".snakemake" --exclude="results/"'
+         f'rsync -rtu {fol_local / "subworkflows/oexp_preproc"} {fol_cluster / "subworkflows"} --progress --exclude=".*" --exclude="pkgs/" --exclude=".snakemake" --exclude="results/"'
 
 rule sync_from_cluster:
     shell:
-         'rsync -rtu vizano@cluster.s3it.uzh.ch:/data/vizano/Git/SpheroidPublication/subworkflows/oexp_preproc /mnt/scratch/vitoz/Git/SpheroidPublication/subworkflows/  --progress --exclude=".*" --exclude="phys/resources" --exclude "phys/pkgs" --exclude="results/align_trakem2"'
+         f'rsync -rtu {fol_cluster / "subworkflows/oexp_preproc"} {fol_local / "subworkflows"}  --progress --exclude=".*" --exclude="phys/resources" --exclude "phys/pkgs" --exclude="results/align_trakem2"'
 rule clean:
     shell:
         "rm -R {folder_base}"
