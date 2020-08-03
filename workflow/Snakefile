@@ -28,7 +28,14 @@ fn_panel = fol_sp_config / 'panel.csv'
 
 fn_sp_config = fol_sp_config / 'config.yml'
 fol_db = fol_results / 'db'
-fn_db = fol_db / 'spherpro.db'
+fn_db = ancient(fol_db / 'spherpro.db')
+fol_manual_qc = fol_results / 'manual_qc'
+fol_manual_qc_raw = fol_manual_qc / 'raw'
+fol_manual_qc_bad = fol_manual_qc / 'bad'
+fn_manual_qc_dat = fol_resources / 'dat_badimgs.csv'
+
+# Create folders
+fol_manual_qc.mkdir(parents=True, exist_ok=True)
 
 fn_db_preprocessed = fol_db / 'dbpreprocess.done'
 fn_db_manualqcapplied = fol_db / 'manualqcapplied.done'
@@ -49,13 +56,13 @@ fn_cpout_nucleiexp = folder_preproc_cp / 'nucleiexp.csv'
 fn_cpout_objectrel = folder_preproc_cp / 'Object relationships.csv'
 folder_cpout_imgs = folder_preproc_cp / 'imgs'
 folder_cpout_masks = folder_preproc_cp / 'masks'
-cp_measurements_output = [fn for fn in (fn_cpout_objectrel,
+cp_measurements_output = [ancient(fn) for fn in (fn_cpout_objectrel,
                                         directory(folder_cpout_imgs), fn_cpout_image, fn_cpout_cell,
                                         fn_cpout_experiment,
                           fn_cpout_cyto, fn_cpout_nucleiexp, fn_cpout_nuclei,
                            directory(folder_cpout_masks))]
 
-cp_measurements_output_srt = [phys_preproc(str(fn)) for fn in cp_measurements_output]
+cp_measurements_output_srt = [ancient(phys_preproc(str(fn))) for fn in cp_measurements_output]
 
 
 # Target rules
@@ -94,9 +101,9 @@ rule step2_init_database:
              mem='32G',
              time='60'
     log:
-        'logs/2_initialize_spherbro.ipynb'
+        notebook='logs/2_initialize_spherbro.py.ipynb'
     notebook:
-        'notebooks/2_initialize_spherbro.ipynb'
+        'notebooks/2_initialize_spherbro.py.ipynb'
 
 rule step3_1_preprocess_db:
     input:
@@ -112,11 +119,88 @@ rule step3_1_preprocess_db:
              mem='32G',
              time='60'
     log:
-       'logs/3_1_dbpreprocess.ipynb'
+       notebook='logs/3_1_dbpreprocess.py.ipynb'
     notebook:
-        'notebooks/3_1_dbpreprocess.ipynb'
+        'notebooks/3_1_dbpreprocess.py.ipynb'
 
+rule step3_2_plot_manualqc_images:
+    input:
+         fn_panel=fn_panel,
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fns_cp = cp_measurements_output,
+         is_preprocessed=fn_db_preprocessed
+    output:
+         directory(fol_manual_qc_raw)
+    conda: 'envs/spherpro_env.yml'
+    threads: 8
+    resources:
+             mem='32G',
+             time='60'
+    log:
+        notebook='logs/3_2_plot_manualqc_images.py.ipynb'
+    notebook:
+        'notebooks/3_2_plot_manualqc_images.py.ipynb'
 
+rule step3_3_identify_manualqc_images:
+    input:
+         fn_panel=fn_panel,
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fns_cp = cp_measurements_output,
+         is_preprocessed=fn_db_preprocessed,
+         fol_manual_qc_raw=fol_manual_qc_raw
+    output:
+         fn_manual_qc_dat
+    conda: 'envs/spherpro_env.yml'
+    threads: 8
+    resources:
+             mem='32G',
+             time='60'
+    log:
+       notebook='logs/3_3_identify_manualqc.py.ipynb'
+    notebook:
+       "notebooks/3_3_identify_manualqc.py.ipynb"
+
+rule step3_4_apply_manualqc_images:
+    input:
+         fn_panel=fn_panel,
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fns_cp = cp_measurements_output,
+         is_preprocessed=fn_db_preprocessed,
+         fn_manual_qc_dat=ancient(fn_manual_qc_dat)
+    output:
+         touch(fn_db_manualqcapplied)
+    conda: 'envs/spherpro_env.yml'
+    threads: 8
+    resources:
+             mem='32G',
+             time='60'
+    log:
+       notebook='logs/3_4_apply_manual_qc.py.ipynb'
+    notebook:
+       'notebooks/3_4_apply_manual_qc.py.ipynb'
+
+rule step4_1_debarcode:
+    input:
+         fn_panel=fn_panel,
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fns_cp = cp_measurements_output,
+         is_preprocessed=fn_db_preprocessed,
+         is_manualqc=fn_db_manualqcapplied
+    output:
+          touch(fn_db_debarcoded)
+    conda: 'envs/spherpro_env.yml'
+    threads: 8
+    resources:
+             mem='32G',
+             time='60'
+    log:
+       notebook='logs/4_1_debarcode.py.ipynb'
+    notebook:
+        'notebooks/4_1_debarcode.py.ipynb'
 
 # Varia
 rule sync_to_cluster:
