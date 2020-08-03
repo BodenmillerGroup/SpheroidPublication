@@ -55,6 +55,12 @@ def define_cellprofiler_rules(configs_cp, folder_base,
         """Function to retrieve plugin folders"""
         return configs_cp[wildcards.batchname]['plugins']
 
+    def fkt_resourcs(wildcards):
+        return configs_cp[wildcards.batchname].get('resources', {})
+
+    def fkt_resources_mem_mb(wildcards):
+        return fkt_resourcs(wildcards).get('mem_mb', 8000)
+
     def fkt_fn_pipeline(wildcards):
         """Function to retrieve pipeline filename"""
         return configs_cp[wildcards.batchname]['pipeline']
@@ -83,6 +89,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
         """
         Initializes all rules for the defined CellProfiler pipelines.
         """
+        # resources:
         rule:
             input:  *cur_config['input_files']
             output: expand(str(pat_fn_filelist), batchname=batchname)
@@ -161,7 +168,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
         container: container_cp
         threads: 1
         resources:
-            mem='8G'
+            mem_mb=fkt_resources_mem_mb
         shell:
             """
             set +e
