@@ -5,7 +5,7 @@ import subprocess as subp
 
 from snakemake.utils import validate
 
-container: 'docker://votti/miniconda3mamba:mamba0.3.0'
+container: 'docker://votti/miniconda3mamba:v0.4.2'
 
 # Define dependency on preprocessing workflows
 subworkflow phys_preproc:
