@@ -334,6 +334,22 @@ rule step6_results_marker_relations:
     notebook:
         'notebooks/6_1_results_marker_relations.py.ipynb'
 
+rule step6_celline_heatmap:
+    input:
+         fn_config=fn_sp_config,
+         is_preproc=fn_db_d2rim,
+         fn_modstats = expand(fn_modstats, res_types='stats', rep=0)[0],
+         fn_modstats_perrep = expand(fn_modstats, res_types='stats', rep=1)[0],
+         fn_modstats_params = expand(fn_modstats, res_types='params', rep=0)[0],
+         fn_panel_ord = fol_resources / 'pannel_ordered.csv',
+         fn_bf_quantification = fn_bf_quantification
+    conda: 'envs/spherpro_env.yml'
+    threads: 8
+    log:
+       notebook='logs/6_2_celline_heatmap.py.ipynb'
+    notebook:
+       'notebooks/6_2_celline_heatmap.py.ipynb'
+
 rule all_modstats:
     input:
         expand(fn_modstats, res_types=res_types, rep=perrep)
