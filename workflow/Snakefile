@@ -2,6 +2,7 @@ import pathlib
 import shutil
 import os
 import subprocess as subp
+import pandas as pd
 
 from snakemake.utils import validate
 
@@ -13,6 +14,12 @@ subworkflow phys_preproc:
         "../../phys_preproc"
     snakefile:
         "../../phys_preproc/workflow/Snakefile"
+
+subworkflow bf_preproc:
+    workdir:
+           "../../bf_preproc"
+    snakefile:
+             "../../bf_preproc/workflow/Snakefile"
 
 # Read Configuration
 configfile: 'config/config_phys_analysis.yml'
@@ -34,6 +41,8 @@ fol_manual_qc_raw = fol_manual_qc / 'raw'
 fol_manual_qc_bad = fol_manual_qc / 'bad'
 fn_manual_qc_dat = fol_resources / 'dat_badimgs.csv'
 
+fn_bf_quantification = fol_resources / 'hq_spheres.csv'
+fn_bf_qc = fol_resources / 'bfqc_manual_v1.csv'
 # Create folders
 fol_manual_qc.mkdir(parents=True, exist_ok=True)
 
@@ -42,6 +51,7 @@ fn_db_manualqcapplied = fol_db / 'manualqcapplied.done'
 fn_db_debarcoded = fol_db / 'debarcoded.done'
 fn_db_bfqc = fol_db / 'bfqcapplied.done'
 fn_db_d2rim = fol_db / 'd2rimapplied.done'
+fn_db_cellclass = fol_db / 'cellsclassified.done'
 
 # all preprocessing files needed:
 folder_preproc_cp = pathlib.Path('results')
@@ -87,6 +97,20 @@ rule get_panel:
 #            # to this workaround.
 #            cmd = f'rsync -rts "{s}" "{pathlib.Path(t).parent}"'
 #            subp.check_call(str(cmd), shell=True)
+
+rule get_bf_quantification:
+    input: bf_preproc('results/hq_spheres.csv')
+    output:
+        fn_bf_quantification
+    shell:
+        'cp {input} {output}'
+
+rule get_bf_qc:
+    input:'../bf_preproc/resources/bfqc_manual_1.csv'
+    output:
+          fn_bf_qc
+    shell:
+         'cp {input} {output}'
 
 rule step2_init_database:
     input:
@@ -195,12 +219,124 @@ rule step4_1_debarcode:
     conda: 'envs/spherpro_env.yml'
     threads: 8
     resources:
-             mem='32G',
+             mem='4G',
              time='60'
     log:
        notebook='logs/4_1_debarcode.py.ipynb'
     notebook:
         'notebooks/4_1_debarcode.py.ipynb'
+
+rule step4_2_apply_bfqc:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fn_bf_qc = fn_bf_qc,
+         is_debarcoded=fn_db_debarcoded
+    output:
+          touch(fn_db_bfqc)
+    conda: 'envs/spherpro_env.yml'
+    threads: 2
+    resources:
+             mem='4G',
+             time='60'
+    log:
+       notebook='logs/4_2_apply_bfqc.py.ipynb'
+    notebook:
+        'notebooks/4_2_apply_bfqc.py.ipynb'
+
+rule step4_3_correct2drim:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fn_bf_quantification = fn_bf_quantification,
+         is_debarcoded=fn_db_bfqc
+    output:
+          touch(fn_db_d2rim)
+    conda: 'envs/spherpro_env.yml'
+    threads: 2
+    resources:
+             mem='4G',
+             time='60'
+    log:
+       notebook='logs/4_3_correct2drim.py.ipynb'
+    notebook:
+       'notebooks/4_3_correct2drim.py.ipynb'
+
+rule step4_4_add_cellstate_class:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         is_d2rim=fn_db_d2rim
+    output:
+          touch(fn_db_cellclass)
+    conda: 'envs/spherpro_env.yml'
+    threads: 8
+    resources:
+             mem='64G',
+             time='60'
+    log:
+       notebook='logs/4_4_add_cellstate_class.py.ipynb'
+    notebook:
+        'notebooks/4_4_add_cellstate_class.py.ipynb'
+
+exp_celllines = ['T47D', '293T', 'HT29', 'DLD1']
+exp_timepoints = ['72', '96']
+exp_concentrations = ['0.25' , '0.5', '1.0']
+perrep = [0,1]
+res_types = ['stats', 'params']
+
+fol_modstats = fol_results / 'modstats'
+fol_modstats_percond = fol_modstats / 'percond'
+fol_modstats.mkdir(exist_ok=True)
+fol_modstats_percond.mkdir(exist_ok=True)
+fn_modstats_run = str(fol_modstats_percond/ 'dat_mod_{res_types}_{cellline}_{tp}_{conc}_perrep{rep}.csv')
+fn_modstats = str(fol_modstats / 'dat_mod_{res_types}_perrep{rep}.csv')
+
+rule fit_marker_relations:
+    input:
+        fn_config=fn_sp_config,
+        is_preproc=fn_db_d2rim
+    output:
+        fn_out_stats = expand(fn_modstats_run, res_types='stats', allow_missing=True),
+        fn_out_params = expand(fn_modstats_run, res_types='params', allow_missing=True)
+    conda: 'envs/spherpro_env.yml'
+    threads: 2
+    params:
+        object_type='cell'
+    script:
+        'scripts/fit_marker_relations.py'
+
+rule combine_marker_relations_stats:
+    input:
+        expand(fn_modstats_run,
+            cellline=exp_celllines, tp=exp_timepoints,
+            conc=exp_concentrations, allow_missing=True)
+    output:
+        fn_modstats
+    run:
+        dats = [pd.read_csv(inp) for inp in input]
+        dat = pd.concat(dats)
+        dat.to_csv(output[0])
+
+rule step6_results_marker_relations:
+    input:
+        fn_config=fn_sp_config,
+        is_preproc=fn_db_d2rim,
+        fn_modstats = expand(fn_modstats, res_types='stats', rep=0)[0],
+        fn_modstats_perrep = expand(fn_modstats, res_types='stats', rep=1)[0],
+        fn_modstats_params = expand(fn_modstats, res_types='params', rep=0)[0],
+        fn_panel_ord = fol_resources / 'pannel_ordered.csv',
+        fn_bf_quantification = fn_bf_quantification
+    conda: 'envs/spherpro_env.yml'
+    threads: 8
+    log:
+        notebook='logs/6_1_results_marker_relations.py.ipynb'
+    notebook:
+        'notebooks/6_1_results_marker_relations.py.ipynb'
+
+rule all_modstats:
+    input:
+        expand(fn_modstats, res_types=res_types, rep=perrep)
 
 # Varia
 fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
