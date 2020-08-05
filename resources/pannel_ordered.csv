@@ -1,0 +1,38 @@
+metal,ord_target,class,ord_within_class
+Gd160,Survivin,apoptosis,1
+Yb174,cleaved PARP,apoptosis,2
+Yb172,Cleaved Caspase3,apoptosis,2
+Er168,Ki-67,cellcycle,1
+Lu175,Rb,cellcycle,2
+Dy161,Cyclin B1,cellcycle,3
+Ho165,CDK1/Cdc2,cellcycle,4
+Eu153,Histone H3,cellcycle,5
+Sm147,Aurora B (Thr232) phosphate,cellcycle,6
+Eu151,EGFR,egf,1
+Nd142,EGFR,egf,2
+Gd155,c-erbB-2 - Her2,egf,3
+Tb159,c-erbB-2 - Her2,egf,4
+Nd144,MEK1/2,egf,5
+Sm154,Erk1/2,egf,6
+Dy163,Akt,mtor,1
+Dy164,Akt,mtor,2
+Gd158,Gsk3,mtor,3
+Sm152,AMPK alpha,mtor,4
+Nd146,S6K,mtor,5
+Yb171,S6,mtor,6
+Nd143,Fak,stress,1
+Nd148,Stat1,stress,2
+Yb173,Stat3,stress,3
+Gd156,p38 MAPK (pT180/pY182),stress,4
+Er170,SAPK/JNK,stress,5
+Nd145,MAPKAPK-2,stress,7
+Sm149,p53,stress,6
+Er167,GFP,tag,1
+Tm169,GFP,tag,2
+Yb176,DYKDDDDK Tag,tag,3
+La139,H3K27me3,total,3
+Pr141,Histone H3,total,2
+Ir193,DNA,total,1
+Dy162,Vimentin,total,6
+Er166,Carbonic Anhydrase IX,total,4
+Nd150,CD44,total,5
