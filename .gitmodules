@@ -14,3 +14,7 @@
 	path = subworkflows/phys_analysis
 	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
 	branch = master
+[submodule "subworkflows/oexp_analysis"]
+	path = subworkflows/oexp_analysis
+	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
+	branch = phys_analysis
