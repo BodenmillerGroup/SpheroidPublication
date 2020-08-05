@@ -1,7 +1,7 @@
 metal,ord_target,class,ord_within_class
 Gd160,Survivin,apoptosis,1
 Yb174,cleaved PARP,apoptosis,2
-Yb172,Cleaved Caspase3,apoptosis,2
+Yb172,Cleaved Caspase3,apoptosis,3
 Er168,Ki-67,cellcycle,1
 Lu175,Rb,cellcycle,2
 Dy161,Cyclin B1,cellcycle,3

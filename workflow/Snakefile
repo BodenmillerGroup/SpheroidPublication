@@ -22,8 +22,7 @@ subworkflow bf_preproc:
              "../../bf_preproc/workflow/Snakefile"
 
 # Read Configuration
-configfile: 'config/config_phys_analysis.yml'
-validate(config, "schemas/config_phys_analysis.schema.yml")
+configfile: 'config/config_oexp_analysis.yml'
 
 # Extract variables from configuration
 ## Input/output

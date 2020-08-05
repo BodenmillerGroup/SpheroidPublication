@@ -1,2 +1,3 @@
 file_name,index,mass,channel_type
-IfStack,1,DAPI,IF
+IfStack,1,GFP,IF
+IfStack,2,DAPI,IF

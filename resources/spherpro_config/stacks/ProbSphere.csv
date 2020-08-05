@@ -1,0 +1,4 @@
+file_name,index,mass,channel_type
+ProbSphere,1,prob-center,pixel_prob
+ProbSphere,2,prob-border,pixel_prob
+ProbSphere,3,prob-background,pixel_prob

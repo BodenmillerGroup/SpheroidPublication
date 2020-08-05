@@ -1,17 +1,16 @@
-backend: 'sqlite'
+0backend: 'sqlite'
 
 sqlite:
-  db: 'results/db/spherpro.db'
+  db: '/mnt/bbvolume/server_homes/vitoz/mnt/tmp/scratch/vitoz/Data/Analysis/20200123_testalign/db_2/spherpro_v2.db'
 
-
-# Analysis defaults
 
 
 # Cellprofiler output info:
-cp_dir: 'results/cpout'
+crop_dir: '/mnt/bbvolume/server_homes/vitoz/mnt/tmp/scratch/vitoz/Data/Analysis/20190726_oexp_p165-161-bigoverexpression_v3_a1/crop'
+cp_dir: '/mnt/bbvolume/server_homes/vitoz/mnt/tmp/scratch/vitoz/Data/Analysis/20190726_oexp_p165-161-bigoverexpression_v3_a1/cpout'
 
 stack_dir:
-  path: 'resources/spherpro_config/stacks'
+  path: '../config/spherpro/stacks'
   id_col: 'index' # Default: 'index'
   name_col: 'mass' # Default: 'name'
   type_col: 'channel_type' # Default: 'channel_type'
@@ -19,7 +18,7 @@ stack_dir:
   stack_col: 'file_name'
   
 stack_relations:
-  path: 'resources/spherpro_config/stackrelations.csv'
+  path: '../config/spherpro/stackrelations.csv'
   stack_col: 'Stack' # Default: 'Stack'
   parent_col: 'Parent' # Default: 'Parent'
   modname_col: 'ModificationName' # Default: 'ModificationName'
@@ -37,15 +36,15 @@ cpoutput:
     path: 'Image.csv'
     re_meta: '(?P<basename>.*)_l(?P<crop_number>[0-9]*)_x(?P<image_pos_x>[0-9]*)_y(?P<image_pos_y>[0-9]*)_.*'
     ome_meta_regexp: '(?P<slideac_name>.*)_s[0-9]+_p(?P<site_mcd_panoramaid>[0-9]+)_r(?P<acquisition_mcd_roiid>[0-9]+)_a(?P<acquisition_mcd_acid>[0-9]+)_ac.*'
-    ome_folder_dirs: [ 'results/ome']
+    ome_folder_dirs: [ '/mnt/bbvolume/server_homes/vitoz/mnt/tmp/scratch/vitoz/Data/Analysis/20190726_oexp_p165-161-bigoverexpression_v3_a1/ometiff']
     slide_regexp: '.*_(?P<sampleblock_name>.*)_slide(?P<slide_number>[0-9]+)_.*'
     mask_filename_col_prefix: 'FileName_'
-    mask_dir: '{cp_dir}/masks/'
-    stackimg_dir: '{cp_dir}/imgs/'
+    mask_dir: '{cp_dir}/masks'
+    stackimg_dir: '{cp_dir}/imgs'
     
 # Experiment layout info:
 layout_csv:
-  path: 'resources/spherpro_config/plate_layout.csv'
+  path: '../config/spherpro/plate_layout.csv'
   plate_col: 'plate'
   well_col: 'well'
   condition_col: 'condition'
@@ -54,14 +53,14 @@ layout_csv:
 
 # Barcode Info:
 barcode_csv:
-  path: 'resources/spherpro_config/60-wellplate_102-104-105-106-108-110-Pd_113-115-In_BarcodingKey_reformated.csv'
+  path: '../config/240_well_barcoding_key.csv'
   well_col: 'well'
   plate_col: 'plate'
   sep: ','
 
 # Pannel Info:
 pannel_csv:
-  path: 'resources/spherpro_config/panel.csv'
+  path: '../config/pannel.csv'
   channel_name: 'metal'
   display_name: 'Target'
   ilastik_name: 'ilastik'

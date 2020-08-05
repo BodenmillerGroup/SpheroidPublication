@@ -1,0 +1,3 @@
+file_name,index,mass,channel_type
+ProbPos,1,prop-pos,pixel_prob
+ProbPos,2,prop-neg,pixel_prob

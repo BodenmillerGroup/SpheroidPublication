@@ -1,0 +1,4 @@
+file_name,index,mass,channel_type
+ProbGfp,1,prob-positiv,pixel_prob
+ProbGfp,2,prob-negativ,pixel_prob
+ProbGfp,3,prob-background,pixel_prob
