@@ -7,7 +7,7 @@ from snakemake.io import strip_wildcard_constraints, expand
 import pandas as pd
 
 # Global conda container
-container: "docker://continuumio/miniconda:4.7.12"
+container: 'docker://votti/miniconda3mamba:mamba0.3.0'
 
 # Cellprofiler/Ilastik rules
 include: 'rules/cellprofiler.smk'
@@ -33,15 +33,15 @@ cellprofiler_container = config['cellprofiler_container']
 cp_plugins = config['cellprofiler_plugins']
 # Define hardcoded variables
 ## Define basic folder structrue
-fn_cp_scaling =  os.path.abspath('resources/cp_pipelines/1_rescale_bf.cppipe')
-fn_cp_segmentation =  os.path.abspath('resources/cp_pipelines/2_segment_bf.cppipe')
-fn_cp_measurement =  os.path.abspath('resources/cp_pipelines/3_measure_bf.cppipe')
-fn_ilastik_proj = 'resources/classifiers/bfsegmentation.ilp'
+folder_resources = pathlib.Path('resources')
+fn_cp_scaling =  folder_resources / 'cp_pipelines/1_rescale_bf.cppipe'
+fn_cp_segmentation =  folder_resources / 'cp_pipelines/2_segment_bf.cppipe'
+fn_cp_measurement =  folder_resources / 'cp_pipelines/3_measure_bf.cppipe'
+fn_ilastik_proj = folder_resources / 'classifiers/bfsegmentation.ilp'
 
 fn_manual_qc = 'resources/bfqc_manual_v1.csv'
 
 folder_analysis = folder_base / 'tiff'
-folder_input = pathlib.Path('input_data')
 folder_scaled = folder_analysis / ('scaled')
 folder_probab = folder_analysis / ('probab')
 folder_mask = folder_analysis / ('mask')
@@ -71,6 +71,7 @@ suffix_tiff = '.tiff'
 pat_basename_input = '{img_base}_Plate_{platenr, [0-9]+}/TimePoint_1/{img_base}{well}.TIF'
 pat_basename_image = '{img_base}{well}'
 
+folder_input = folder_resources / 'bfimages'
 pat_fn_input= folder_input / pat_basename_input
 pat_fn_plate = folder_analysis / (f'{pat_basename_image}{suffix_plate}{suffix_tiff}')
 pat_fn_scaled = folder_analysis / (f'{pat_fn_plate.stem}{suffix_scale}{suffix_tiff}')
@@ -121,21 +122,21 @@ config_dict_cp = {
     'rescale': {
         'run_size': 50,
         'plugins': cp_plugins,
-        'pipeline': fn_cp_scaling,
+        'pipeline': str(fn_cp_scaling),
         'input_files': [fkt_fns_input],
         'output_patterns': {'scaled': directory(folder_scaled)},
     },
     'segmasks': {
         'run_size': 50,
         'plugins': cp_plugins,
-        'pipeline': fn_cp_segmentation,
+        'pipeline': str(fn_cp_segmentation),
         'input_files': [folder_probab],
         'output_patterns': {'.': directory(folder_mask)},
     },
     'measuremasks': {
         'run_size': 50,
         'plugins': cp_plugins,
-        'pipeline': fn_cp_measurement,
+        'pipeline': str(fn_cp_measurement),
         'input_files': [folder_mask, folder_scaled, folder_probab],
         'output_patterns': {'.': cp_meas_output, 'overlays': directory(folder_cp_ov)}
     }
@@ -147,14 +148,14 @@ config_dict_cp = {
 # (Please look at rules/cellprofiler.smk for the documentation of this structure)
 config_dict_ilastik = {
     'spheres':
-        {'project': fn_ilastik_proj,
+        {'project': str(fn_ilastik_proj),
          'run_size': 50,
          'output_format': 'tiff',
          'output_filename': f'{{nickname}}{suffix_probablities}{suffix_tiff}',
          'export_source': 'Probabilities',
          'export_dtype': 'uint8',
          'pipeline_result_drange': '"(0.0, 1.0)"',
-         'input_files': folder_scaled,
+         'input_files': str(folder_scaled),
          'output_pattern': directory(folder_probab)
          }
 }
@@ -218,7 +219,9 @@ rule nb_sphere_size:
         fn_fig1_bfspheres = fn_fig1_bfspheres
     conda:
         'envs/bf.yml'
-    threads: 32
+    threads: 8
+    resources:
+        mem='32G'
     log:
         # optional path to the processed notebook
         notebook="logs/notebooks/1_sphere_size.py.ipynb"
