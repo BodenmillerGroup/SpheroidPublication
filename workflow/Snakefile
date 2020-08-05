@@ -46,6 +46,13 @@ fn_bf_qc = fol_resources / 'bfqc_manual_v1.csv'
 # Create folders
 fol_manual_qc.mkdir(parents=True, exist_ok=True)
 
+# Analysis output
+fol_figures = fol_results / 'figures'
+fol_figures_marker_relationship = fol_figures / 'marker_relationship'
+fol_figures_cellline_heatmap = fol_figures / 'cellline_heatmap'
+fol_figures_optimal_ord = fol_figures / 'optimal_ord'
+
+# Preprocessing indicators
 fn_db_preprocessed = fol_db / 'dbpreprocess.done'
 fn_db_manualqcapplied = fol_db / 'manualqcapplied.done'
 fn_db_debarcoded = fol_db / 'debarcoded.done'
@@ -77,7 +84,8 @@ cp_measurements_output_srt = [ancient(phys_preproc(str(fn))) for fn in cp_measur
 
 # Target rules
 rule all:
-    input: fn_panel
+    input: fn_panel, fn_db, fn_db_d2rim, fol_figures_marker_relationship,
+        fol_figures_optimal_ord, fol_figures_cellline_heatmap
 
 rule get_panel:
     input: fn_panel_src
@@ -327,6 +335,8 @@ rule step6_results_marker_relations:
         fn_modstats_params = expand(fn_modstats, res_types='params', rep=0)[0],
         fn_panel_ord = fol_resources / 'pannel_ordered.csv',
         fn_bf_quantification = fn_bf_quantification
+    output:
+          fol_out = directory(fol_figures_marker_relationship)
     conda: 'envs/spherpro_env.yml'
     threads: 8
     log:
@@ -343,6 +353,8 @@ rule step6_celline_heatmap:
          fn_modstats_params = expand(fn_modstats, res_types='params', rep=0)[0],
          fn_panel_ord = fol_resources / 'pannel_ordered.csv',
          fn_bf_quantification = fn_bf_quantification
+    output:
+         fol_out = directory(fol_figures_cellline_heatmap)
     conda: 'envs/spherpro_env.yml'
     threads: 8
     log:
@@ -350,9 +362,24 @@ rule step6_celline_heatmap:
     notebook:
        'notebooks/6_2_celline_heatmap.py.ipynb'
 
-rule all_modstats:
+rule step6_optimal_ord:
     input:
-        expand(fn_modstats, res_types=res_types, rep=perrep)
+         fn_config=fn_sp_config,
+         is_preproc=fn_db_d2rim,
+         fn_modstats = expand(fn_modstats, res_types='stats', rep=0)[0],
+         fn_modstats_perrep = expand(fn_modstats, res_types='stats', rep=1)[0],
+         fn_modstats_params = expand(fn_modstats, res_types='params', rep=0)[0],
+         fn_panel_ord = fol_resources / 'pannel_ordered.csv',
+         fn_bf_quantification = fn_bf_quantification
+    output:
+          fol_out = directory(fol_figures_optimal_ord)
+    conda: 'envs/spherpro_env.yml'
+    threads: 8
+    log:
+       notebook='logs/6_2_r2_optimal_ord.py.ipynb'
+    notebook:
+        'notebooks/6_2_r2_optimal_ord.py.ipynb'
+
 
 # Varia
 fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
