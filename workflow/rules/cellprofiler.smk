@@ -2,6 +2,7 @@ import json
 from scripts import helpers as hpr
 import pathlib
 from snakemake.io import get_flag_value
+import shutil
 
 def define_cellprofiler_rules(configs_cp, folder_base,
                               container_cp="docker://cellprofiler/cellprofiler:3.1.9"):
@@ -18,8 +19,10 @@ def define_cellprofiler_rules(configs_cp, folder_base,
                             input_files_b, # input file definitions
                             input_filec_c
                             ),
-             'output_files': [pattern_a, # list of output file
-                              pattern_b], # patterns
+             'output_files': {'.': # Dictionary with folder location relative to
+                                    # output folder
+                                [pattern_a, # list of output file
+                              pattern_b]}, # patterns
     }
 
 
@@ -52,6 +55,12 @@ def define_cellprofiler_rules(configs_cp, folder_base,
         """Function to retrieve plugin folders"""
         return configs_cp[wildcards.batchname]['plugins']
 
+    def fkt_resourcs(wildcards):
+        return configs_cp[wildcards.batchname].get('resources', {})
+
+    def fkt_resources_mem_mb(wildcards):
+        return fkt_resourcs(wildcards).get('mem_mb', 8000)
+
     def fkt_fn_pipeline(wildcards):
         """Function to retrieve pipeline filename"""
         return configs_cp[wildcards.batchname]['pipeline']
@@ -80,6 +89,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
         """
         Initializes all rules for the defined CellProfiler pipelines.
         """
+        # resources:
         rule:
             input:  *cur_config['input_files']
             output: expand(str(pat_fn_filelist), batchname=batchname)
@@ -108,11 +118,9 @@ def define_cellprofiler_rules(configs_cp, folder_base,
                     message: 'Define CP pipeline output files'
                     threads: 1
                     params:
-                        subfol = subfol
-                    shell:
-                         """
-                         mv  $(realpath {input.fol_combined}/{params.subfol}) {output[0]}
-                         """
+                          subfol = subfol
+                    run:
+                        shutil.move(pathlib.Path(input.fol_combined[0]) / params.subfol, output[0])
             else:
                 for outfile in outval:
                     rule:
@@ -122,11 +130,10 @@ def define_cellprofiler_rules(configs_cp, folder_base,
                         message: 'Move CP pipeline output files'
                         threads: 1
                         params:
-                            subfol = subfol
-                        shell:
-                            """
-                            mv $(realpath {input.fol_combined}/{params.subfol}/"$(basename "{output[0]}")") "{output[0]}"
-                            """
+                              subfol = subfol
+                        run:
+                            shutil.move(((pathlib.Path(input.fol_combined[0]) / params.subfol) / pathlib.Path(output[0]).name).resolve(),
+                                        output[0])
 
     # Define Cellprofiler specific rules
     rule cp_get_plugins:
@@ -157,12 +164,25 @@ def define_cellprofiler_rules(configs_cp, folder_base,
              batchfile=pat_fn_batchfile,
              plugins=pat_fol_plugins
         output:
-              outfolder=directory(pat_fol_batch / 'run_{start}_{end}')
+              outfolder=temporary(directory(pat_fol_batch / 'run_{start}_{end}'))
         container: container_cp
         threads: 1
+        resources:
+            mem_mb=fkt_resources_mem_mb
         shell:
-            ("cellprofiler -c -r -p {input.batchfile} -f {wildcards.start} -l {wildcards.end}"
-            " --do-not-write-schema --plugins-directory={input.plugins} -o {output.outfolder} || true")
+            """
+            set +e
+            cellprofiler -c -r -p {input.batchfile} -f {wildcards.start} -l {wildcards.end} \
+                --do-not-write-schema --plugins-directory={input.plugins} -o {output.outfolder}
+            exitcode=$?
+            if [ $exitcode -ge 0 ]
+            then
+                exit 0
+            else
+                exit 1
+            fi
+            """
+
 
     checkpoint cp_get_groups:
         input: pat_fn_batchfile,
@@ -175,7 +195,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
 
     checkpoint cp_combine_batch_output:
         input: fkt_fols_run  # function that retrieves all groups for a batch
-        output: directory(pat_fol_batch_combined)
+        output: temporary(directory(pat_fol_batch_combined))
         params:
               fkt_input=fkt_fols_run
         run:

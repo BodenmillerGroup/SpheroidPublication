@@ -124,7 +124,7 @@ def define_ilastik_rules(configs_ilastik, folder_base,
              fns = fkt_fns_run,
              project = fkt_fn_project
         output:
-              outfolder = directory(pat_fol_run)
+              outfolder = temporary(directory(pat_fol_run))
         container: container_ilastik
         threads: threads
         resources:
@@ -144,15 +144,15 @@ def define_ilastik_rules(configs_ilastik, folder_base,
             '--export_source={params.export_source} '
             '--export_dtype={params.export_dtype} '
             '--pipeline_result_drange={params.pipeline_result_drange} '
-            '--readonly '
-            '{params.fkt_fns} {params.fkt_fns[0]}'
+            '--readonly 1 '
+            '{params.fkt_fns}'
             #'{input.fns} {input.fns[0]}' # Above is a temporary fix for issue #55 of snakemake
             # The first file is added again as Ilastik seems to ignore the first input file :/
 
     checkpoint ilastik_combine_batch_output:
         input:
             fkt_fols_run  # function that retrieves all groups for a batch
-        output: directory(pat_fol_combined)
+        output: temporary(directory(pat_fol_combined))
         params:
             fkt_input=fkt_fols_run
         run:
