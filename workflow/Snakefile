@@ -3,6 +3,7 @@ import shutil
 
 from scripts import helpers as hpr
 from scripts.utils_alignment import variables as VarAlign
+from scripts import zenodo
 from snakemake.utils import validate
 
 # Cellprofiler/Ilastik rules
@@ -18,7 +19,9 @@ validate(config, "schemas/config_phys.schema.yml")
 
 # Extract variables from configuration
 ## Input/output
-input_data_folders = config['input_data_folders']
+#input_data_folders = config['input_data_folders']
+input_zenodo_imc_repositories = config['input_zenodo_imc_repositories']
+input_zenodo_slidescan_repositories = config['input_zenodo_slidescan_repositories']
 input_file_regexp = config['input_file_regexp']
 
 ## Panel
@@ -97,7 +100,9 @@ folder_cpout_imgs = folder_cp / 'imgs'
 folder_cpout_masks = folder_cp /'masks'
 
 # Identify a dictionary of input folders/zips containing .mcd files to process
-dict_zip_fns = {fn.stem: fn for fn in hpr.get_filenames_by_re(input_data_folders, input_file_regexp)}
+#dict_zip_fns = {fn.stem: fn for fn in hpr.get_filenames_by_re(input_data_folders, input_file_regexp)}
+dict_zip_fns = zenodo.get_file_dicts(input_zenodo_imc_repositories)
+dict_slidescan_fns = zenodo.get_file_dicts(input_zenodo_slidescan_repositories)
 
 # Produce a list of all cellprofiler output files
 cp_measurements_output = [fn_cpout_image, fn_cpout_cell, fn_cpout_experiment, fn_cpout_objectrel,
@@ -118,7 +123,7 @@ suffix_crop = '_{crop, x[0-9]+_y[0-9]+_w[0-9]+_h[0-9]+}'
 suffix_sphereseg = '_sphereseg'
 
 ## Define derived file patterns
-pat_fn_zip = folder_zip / ('{zipfol}' + '.zip')
+pat_fn_zip = folder_zip / ('{zipfol}')
 pat_fn_mcdparse_done = folder_base / 'zips' / ('{zipfol}' + suffix_done)
 fn_all_mcd_converted = folder_base / 'all_mcd_converted.done'
 
@@ -211,8 +216,9 @@ class AlignmentConf:
     fn_slidematch = pathlib.Path('resources/20190506_bigstain_selection_final_if_imcalign_v1.csv')
 
     # The folder containing the slide scans
-    fol_slide_source = pathlib.Path('/mnt/bbvolume/server_homes/vitoz/mnt/tmp/scratch/vitoz/archive/vitoz/RawData/slidescanner_uncompressed/slidescanner_transfer_20190510_0015/')
     fol_slide = pathlib.Path('resources/slidescanner/')
+    pat_fn_slidescan = str(fol_slide / '{slidescan}')
+    fn_all_slides_dl = fol_slide / 'slide_dl.done'
 
     # The folder containing the IMC images converted to ometiff
     fol_imc = folder_ome
@@ -291,10 +297,13 @@ rule all_before_alignment:
     input: folder_spherecrop_mask
 
 rule all_rawdata:
-    input: expand(str(pat_fn_zip), zipfol=dict_zip_fns.keys()), AlignmentConf.fol_slide, fns_compensation
+    input: expand(str(pat_fn_zip), zipfol=dict_zip_fns.keys()), AlignmentConf.fn_all_slides_dl, fns_compensation
 
 def get_zip_fn(wildcards):
     return dict_zip_fns[wildcards.zipfol]
+
+def get_slidescan_fn(wildcards):
+    return dict_slidescan_fns[wildcards.slidescan]
 
 
 # MCD to ome conversion
@@ -305,8 +314,6 @@ rule mcdfolder2imcfolder:
     threads: 1
     params:
         fol_ome = folder_ome
-    conda:
-        'envs/env_imctools.yml'
     resources:
         mem='16G'
     container: container_imctools
@@ -332,8 +339,6 @@ rule ome2full:
         min_imgsize = img_minsize
     output:
         directory(folder_sphere_full)
-    conda:
-         'envs/env_imctools.yml'
     container: container_imctools
     script:
         'scripts/imc2analysis.py'
@@ -345,8 +350,6 @@ rule ome2ilastik:
         done = fn_all_mcd_converted
     output:
         directory(folder_sphere_ilastik)
-    conda:
-         'envs/env_imctools.yml'
     container: container_imctools
     params:
         column_used = 'ilastik',
@@ -363,8 +366,6 @@ rule ome2sphereseg:
          done = fn_all_mcd_converted
     output:
           directory(folder_sphereseg_ilastik)
-    conda:
-         'envs/env_imctools.yml'
     container: container_imctools
     params:
           column_used = 'sphereseg',
@@ -379,7 +380,8 @@ rule alignment_get_ifslide_imcslide_transf:
     input:
         fol_slide = AlignmentConf.fol_slide,
         fol_imc = AlignmentConf.fol_imc,
-        mcd_done = fn_all_mcd_converted
+        mcd_done = fn_all_mcd_converted,
+        slides_done = AlignmentConf.fn_all_slides_dl
     output:
         fn_transf_ifslide_imcslide=AlignmentConf.fn_transf_ifslide_imcslide
     container:
@@ -446,8 +448,7 @@ rule compensation_prepare_sm:
         fn_ss_panel=fns_compensation_ss_panel
     output:
         fn_sm_mat
-    conda:
-        'envs/env_catalyst.yml'
+    container: 'docker://votti/catalyst:v1.10'
     resources:
         mem='8G'
     log:
@@ -464,8 +465,7 @@ rule compensation_adapt_sm:
           fol_out=directory(folder_spherecrop_sms)
     params:
          re_fns_full='.*_full_l[0-9]+_x[0-9]+_y[0-9]+\.tiff'
-    conda:
-         'envs/env_catalyst.yml'
+    container: 'docker://votti/catalyst:v1.10'
     log:
        notebook='logs/compensation/imc_adaptsm.r.ipynb'
     notebook:
@@ -493,21 +493,41 @@ rule clean:
         "rm -R {folder_base}"
 
 ### Data retrieval
-
-rule retrieve_zip:
-    output: pat_fn_zip
+rule retrieve_zenodo_imc:
+    output:
+          pat_fn_zip
     params:
           fn = get_zip_fn
     shell:
-         'rsync -rt {params.fn} {output[0]}'
+         'wget -P {folder_zip} {params.fn}'
 
-rule alignment_retrieve_slidescans:
-    input:
-         AlignmentConf.fol_slide_source
+rule retrieve_zenodo_slidescan:
     output:
-          directory(AlignmentConf.fol_slide)
+          AlignmentConf.pat_fn_slidescan
+    params:
+          fn = get_slidescan_fn
     shell:
-         'rsync -rt {input[0]}/ {output[0]}'
+         'wget -P {AlignmentConf.fol_slide} {params.fn}'
+#rule retrieve_zip:
+#    output: pat_fn_zip
+#    params:
+#          fn = get_zip_fn
+#    shell:
+#         'rsync -rt {params.fn} {output[0]}'
+
+rule alignment_all_slidescans:
+    input:
+        expand(AlignmentConf.pat_fn_slidescan,slidescan=dict_slidescan_fns.keys())
+    output:
+        touch(AlignmentConf.fn_all_slides_dl)
+
+#rule alignment_retrieve_slidescans:
+#    input:
+#         AlignmentConf.fol_slide_source
+#    output:
+#          directory(AlignmentConf.fol_slide)
+#    shell:
+#         'rsync -rt {input[0]}/ {output[0]}'
 
 rule compensation_retrieve_data:
     input:
