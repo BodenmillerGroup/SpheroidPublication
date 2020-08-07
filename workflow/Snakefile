@@ -6,7 +6,7 @@ import pandas as pd
 
 from snakemake.utils import validate
 
-container: 'docker://votti/miniconda3mamba:v0.4.2'
+container_base = 'docker://votti/miniconda3mamba:v0.4.2'
 
 # Define dependency on preprocessing workflows
 subworkflow phys_preproc:
@@ -94,17 +94,17 @@ rule get_panel:
         shutil.copy(input[0], output[0])
 
 # TODO: also link ome folder!
-#rule get_cpout:
-#    input: cp_measurements_output_srt
-#    output: cp_measurements_output
-#    run:
-#        folder_preproc_cp.mkdir(exist_ok=True)
-#        for s, t in zip(input, output):
-#            # Somehow shutil copytree and co failed
-#            # likely to to a NFS related error. Resorting
-#            # to this workaround.
-#            cmd = f'rsync -rts "{s}" "{pathlib.Path(t).parent}"'
-#            subp.check_call(str(cmd), shell=True)
+rule get_cpout:
+    input: cp_measurements_output_srt
+    output: cp_measurements_output
+    run:
+        folder_preproc_cp.mkdir(exist_ok=True)
+        for s, t in zip(input, output):
+            # Somehow shutil copytree and co failed
+            # likely to to a NFS related error. Resorting
+            # to this workaround.
+            cmd = f'rsync -rts "{s}" "{pathlib.Path(t).parent}"'
+            subp.check_call(str(cmd), shell=True)
 
 rule get_bf_quantification:
     input: bf_preproc('results/hq_spheres.csv')
@@ -114,7 +114,7 @@ rule get_bf_quantification:
         'cp {input} {output}'
 
 rule get_bf_qc:
-    input:'../bf_preproc/resources/bfqc_manual_1.csv'
+    input: '../bf_preproc/resources/bfqc_manual_v1.csv'
     output:
           fn_bf_qc
     shell:
@@ -128,6 +128,7 @@ rule step2_init_database:
     output:
         fn_db
     conda: 'envs/spherpro_env.yml'
+    container: container_base
     threads: 8
     resources:
              mem='32G',
@@ -146,6 +147,7 @@ rule step3_1_preprocess_db:
     output:
          touch(fn_db_preprocessed)
     conda: 'envs/spherpro_env.yml'
+    container: container_base
     threads: 8
     resources:
              mem='32G',
@@ -165,6 +167,7 @@ rule step3_2_plot_manualqc_images:
     output:
          directory(fol_manual_qc_raw)
     conda: 'envs/spherpro_env.yml'
+    container: container_base
     threads: 8
     resources:
              mem='32G',
@@ -182,9 +185,10 @@ rule step3_3_identify_manualqc_images:
          fns_cp = cp_measurements_output,
          is_preprocessed=fn_db_preprocessed,
          fol_manual_qc_raw=fol_manual_qc_raw
-    output:
+    params:
          fn_manual_qc_dat
     conda: 'envs/spherpro_env.yml'
+    container: container_base
     threads: 8
     resources:
              mem='32G',
@@ -205,6 +209,7 @@ rule step3_4_apply_manualqc_images:
     output:
          touch(fn_db_manualqcapplied)
     conda: 'envs/spherpro_env.yml'
+    container: container_base
     threads: 8
     resources:
              mem='32G',
@@ -225,9 +230,10 @@ rule step4_1_debarcode:
     output:
           touch(fn_db_debarcoded)
     conda: 'envs/spherpro_env.yml'
+    container: container_base
     threads: 8
     resources:
-             mem='4G',
+             mem='32G',
              time='60'
     log:
        notebook='logs/4_1_debarcode.py.ipynb'
@@ -243,6 +249,7 @@ rule step4_2_apply_bfqc:
     output:
           touch(fn_db_bfqc)
     conda: 'envs/spherpro_env.yml'
+    container: container_base
     threads: 2
     resources:
              mem='4G',
@@ -261,9 +268,10 @@ rule step4_3_correct2drim:
     output:
           touch(fn_db_d2rim)
     conda: 'envs/spherpro_env.yml'
+    container: container_base
     threads: 2
     resources:
-             mem='4G',
+             mem='16G',
              time='60'
     log:
        notebook='logs/4_3_correct2drim.py.ipynb'
@@ -278,6 +286,7 @@ rule step4_4_add_cellstate_class:
     output:
           touch(fn_db_cellclass)
     conda: 'envs/spherpro_env.yml'
+    container: container_base
     threads: 8
     resources:
              mem='64G',
@@ -308,7 +317,11 @@ rule fit_marker_relations:
         fn_out_stats = expand(fn_modstats_run, res_types='stats', allow_missing=True),
         fn_out_params = expand(fn_modstats_run, res_types='params', allow_missing=True)
     conda: 'envs/spherpro_env.yml'
+    container: container_base
     threads: 2
+    resources:
+        mem='8G',
+        time='60'
     params:
         object_type='cell'
     script:
@@ -338,7 +351,11 @@ rule step6_results_marker_relations:
     output:
           fol_out = directory(fol_figures_marker_relationship)
     conda: 'envs/spherpro_env.yml'
+    container: container_base
     threads: 8
+    resources:
+        mem='8G',
+        time='60'
     log:
         notebook='logs/6_1_results_marker_relations.py.ipynb'
     notebook:
@@ -356,7 +373,11 @@ rule step6_celline_heatmap:
     output:
          fol_out = directory(fol_figures_cellline_heatmap)
     conda: 'envs/spherpro_env.yml'
+    container: container_base
     threads: 8
+    resources:
+        mem='8G',
+        time='60'
     log:
        notebook='logs/6_2_celline_heatmap.py.ipynb'
     notebook:
@@ -374,7 +395,11 @@ rule step6_optimal_ord:
     output:
           fol_out = directory(fol_figures_optimal_ord)
     conda: 'envs/spherpro_env.yml'
+    container: container_base
     threads: 8
+    resources:
+        mem='8G',
+        time='60'
     log:
        notebook='logs/6_2_r2_optimal_ord.py.ipynb'
     notebook:
