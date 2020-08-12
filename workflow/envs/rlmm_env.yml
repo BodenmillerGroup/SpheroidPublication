@@ -1,0 +1,14 @@
+name: rlmm_env
+channels:
+  - conda-forge
+  - bioconda
+  - anaconda
+  - r
+  - defaults
+
+dependencies:
+  - r-lme4
+  - r-lmertest
+  - r-tidyverse
+  - r-loomr
+  - r-data.table
