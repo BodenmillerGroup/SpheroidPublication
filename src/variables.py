@@ -68,19 +68,19 @@ class Vars:
     COL_PLATEID = db.conditions.plate_id.key
     COL_PLATELEVEL = COL_PLATEID + 'level'
     
-    # Filters
-    FIL_MITOSIS = 'is_mitotic'
-    FIL_APOPTOSIS = 'is_apoptotic' 
+    # oexp
+    COL_TAGFLAG = 'TagFLAG'
+    COL_TAGGFP = 'TagGFP'
+    COL_TAG = 'tag'
+    COL_GENE = 'gene'
+    COL_MODIFICATION = 'modification'
     
-    # experiment layout
-    COL_CELLLINE = 'cellline'
-    COL_TIMEPOINT = 'time_point'
-    COL_CONCENTRATION = 'concentration'
-    
-    # Default orders
-    CAT_CELLLINE = ['HT29', 'DLD1', '293T', 'T47D']
-    
-    # Fit marker relations
+    COL_D2RIM_NORM = 'd2rim_norm'
+    COL_FLAGPOS = 'IsFlagpos'
+    SUFFIX_FILNB = 'Nb'
+    COL_FLAGPOSNB = COL_FLAGPOS+SUFFIX_FILNB
+    COL_GFPPOS = 'IsGfppos'
+    COL_GFPPOSNB = COL_GFPPOS+SUFFIX_FILNB
     COL_GENE = 'gene'
     COL_GENE_UNTAGGED = 'gene_untagged'
     COL_TAG = 'tag'
@@ -90,7 +90,6 @@ class Vars:
     COL_ISNB = 'isnb'
     COL_FITTED = 'fitted'
     COL_RESID = 'residual'
-    COL_IMGID = db.images.image_id.key
     COL_OBJ_NR = db.objects.object_number.key
     COL_FC = 'fc'
     COL_P = 'p'
@@ -107,6 +106,13 @@ class Vars:
     COL_P_CORR = 'p_corrected'
     COL_ISSIG = 'is_sig_sel'
     COL_FITCONDITIONNAME = 'FitConditionName'
-    COL_VALUES = db.object_measurements.value.key
-
+    COL_FITCONDITIONEXT = 'FitConditionExt'
     COL_COEFNAME = 'coefname'
+    COL_PLTNAME = 'pltname'
+    COL_METAL = 'metal'
+    
+    COL_LB = 'lower_bound'
+    COL_UB = 'upper_bound'
+    COL_ESTIMATE = 'Estimate'
+    FIL_MITOSIS = 'fil_mitosis'
+    FIL_APOPTOSIS = 'fil_apoptosis'
