@@ -29,6 +29,7 @@ dependencies:
   - leidenalg
   - jupytext
   - imctools=1.0.7
+  - loompy
   - pip:
     - sqlalchemy-utils
     - simplegeneric
@@ -38,4 +39,4 @@ dependencies:
     - git+https://github.com/blaze/odo.git
     - git+https://github.com/BodenmillerGroup/pycytools.git
     - git+https://github.com/BodenmillerGroup/spherpro.git@develop
-    - '../../'
+    - '--editable ../../'
