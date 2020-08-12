@@ -131,7 +131,7 @@ suffix_crop = '_{crop, x[0-9]+_y[0-9]+_w[0-9]+_h[0-9]+}'
 suffix_sphereseg = '_sphereseg'
 
 ## Define derived file patterns
-pat_fn_zip = folder_zip / ('{zipfol}' + '.zip')
+pat_fn_zip = folder_zip / ('{zipfol}')
 pat_fn_mcdparse_done = folder_ome / ('{zipfol}' + suffix_done)
 fn_all_mcd_converted = folder_base / 'all_mcd_converted.done'
 
