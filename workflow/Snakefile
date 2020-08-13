@@ -1,13 +1,14 @@
 import pathlib
 import os
 
+from scripts import zenodo
 from scripts import helpers as hpr
 from snakemake.utils import validate
 from snakemake.io import strip_wildcard_constraints, expand
 import pandas as pd
 
 # Global conda container
-container: 'docker://votti/miniconda3mamba:mamba0.3.0'
+base_container = 'docker://votti/miniconda3mamba:mamba0.3.0'
 
 # Cellprofiler/Ilastik rules
 include: 'rules/cellprofiler.smk'
@@ -21,9 +22,10 @@ validate(config, "schemas/config_bf.schema.yml")
 ## Input/output
 input_data_folders = config['input_data_folders']
 input_file_regexp = config['input_file_regexp']
+input_zenodo_bf_repositories = config['input_zenodo_bf']
+
 folder_base = pathlib.Path('results')
 
-fn_dat_input = 'config/input_files.csv'
 
 ## Ilastik run config
 ilastik_container = config['ilastik_container']
@@ -34,6 +36,7 @@ cp_plugins = config['cellprofiler_plugins']
 # Define hardcoded variables
 ## Define basic folder structrue
 folder_resources = pathlib.Path('resources')
+fn_dat_input = folder_resources / 'input_files.csv'
 fn_cp_scaling =  folder_resources / 'cp_pipelines/1_rescale_bf.cppipe'
 fn_cp_segmentation =  folder_resources / 'cp_pipelines/2_segment_bf.cppipe'
 fn_cp_measurement =  folder_resources / 'cp_pipelines/3_measure_bf.cppipe'
@@ -56,8 +59,6 @@ fn_experiment = folder_cp / 'Experiment.csv'
 # Produce a list of all cellprofiler output files
 cp_meas_output = [fn_image, fn_mask, fn_experiment]
 
-# Identify a dictionary of input folders/zips containing .mcd files to process
-dict_zip_fns = hpr.get_filenames_by_re(input_data_folders, input_file_regexp)
 
 ## Define suffixes
 suffix_plate = '_p{platenr}'
@@ -66,18 +67,15 @@ suffix_mask = '_mask'
 suffix_probablities = '_Probabilities'
 suffix_overlay = '_overlay'
 suffix_tiff = '.tiff'
+suffix_done = '.done'
 
 ## Define derived file patterns
-pat_basename_input = '{img_base}_Plate_{platenr, [0-9]+}/TimePoint_1/{img_base}{well}.TIF'
-pat_basename_image = '{img_base}{well}'
-
 folder_input = folder_resources / 'bfimages'
-pat_fn_input= folder_input / pat_basename_input
-pat_fn_plate = folder_analysis / (f'{pat_basename_image}{suffix_plate}{suffix_tiff}')
-pat_fn_scaled = folder_analysis / (f'{pat_fn_plate.stem}{suffix_scale}{suffix_tiff}')
-pat_fn_probabilities = folder_analysis / (f'{pat_fn_scaled.stem}{suffix_probablities}{suffix_tiff}')
-pat_fn_mask= folder_analysis / (f'{pat_fn_probabilities.stem}{suffix_mask}{suffix_tiff}')
-pat_fn_overlay= folder_cp_ov / (f'{pat_fn_scaled.stem}{suffix_overlay}{suffix_tiff}')
+folder_input.mkdir(exist_ok=True)
+folder_zip = folder_resources / 'zips'
+folder_zip.mkdir(exist_ok=True)
+pat_fn_zip = folder_zip / ('{zipfol}')
+pat_fn_unzip_done = folder_input / ('{zipfol}' + suffix_done)
 
 done_rescale = folder_analysis / 'rescale.done'
 fol_scale_combined =  folder_analysis / 'cp_rescale'/ 'combined'
@@ -87,7 +85,8 @@ def get_dict():
     global FN_DICT
     if FN_DICT is None:
         dat = pd.read_csv(fn_dat_input)
-        d = {str(out): str(inp) for inp, out in dat.loc[:, ['input_filename', 'output_filename']].values}
+        d = {str(out): str(inp) for inp, out in
+             dat.loc[:, ['input_url', 'output_filename']].values}
         FN_DICT = d
     else:
         d = FN_DICT
@@ -102,9 +101,14 @@ def fkt_fns_input(wildcards):
     :return: A list of all `.ome.tiffs` generated.
     """
     checkpoints.define_input_files.get()
-    fns_output = pd.read_csv(fn_dat_input)['output_filename']
-    fns = [str(folder_input / fn) for fn in fns_output]
-    return fns
+    fns_output = get_dict().keys()
+    return expand(str(pat_fn_unzip_done), zipfol=fns_output)
+
+# Define dynamic files
+## Define (dynamic) input file functions
+
+def get_zip_fn(wildcards):
+    return get_dict()[wildcards.zipfol]
 
 ## Define derived (dynamic) input files functions
 ## This generates functions to define input filenames based on other input filename functions
@@ -116,6 +120,13 @@ folder_wellov = folder_results / 'well_overviews'
 fn_hqspheres = folder_results / 'hq_spheres.csv'
 fn_fig1_bfspheres = folder_results / 'fig1_bfspheres.png'
 
+# Output:
+rule all:
+    input: cp_meas_output, folder_cp_ov, folder_scaled, fn_hqspheres
+
+rule scaled_imgs:
+    input:
+         folder_scaled
 # Configuration for cellprofiler pipeline steps
 # (Please look at rules/cellprofiler.smk for the documentation of this structure)
 config_dict_cp = {
@@ -123,7 +134,7 @@ config_dict_cp = {
         'run_size': 50,
         'plugins': cp_plugins,
         'pipeline': str(fn_cp_scaling),
-        'input_files': [fkt_fns_input],
+        'input_files': [folder_input, fkt_fns_input],
         'output_patterns': {'scaled': directory(folder_scaled)},
     },
     'segmasks': {
@@ -161,48 +172,35 @@ config_dict_ilastik = {
 }
 
 # Target rules
-rule all:
-    input: cp_meas_output, folder_cp_ov, folder_scaled, fn_hqspheres
-
-rule scaled_imgs:
-    input:
-         folder_scaled
-
-rule input_imgs:
-    input:
-         fkt_fns_input
-
 checkpoint define_input_files:
-    output:
-        fn_dat_input
+    output: fn_dat_input
     run:
-        fns = hpr.get_filenames_by_re(input_data_folders, input_file_regexp)
-        dat_input = (pd.DataFrame({'input_filename': fns})
-                 .assign(output_filename= lambda d: d['input_filename']
-        .map(lambda fn: fn.relative_to(fn.parent.parent.parent)))
-                 )
-        dat_input.to_csv('config/input_files.csv', index=False)
+        dic_fn = zenodo.get_file_dicts(input_zenodo_bf_repositories)
+        tup_fn = [(k, v) for k, v in dic_fn.items()]
+        dat_input = pd.DataFrame(tup_fn, columns=['output_filename','input_url'])
+        dat_input.to_csv(fn_dat_input, index=False)
 
-def get_fn_from(wildcards):
-    rel_fol = expand(strip_wildcard_constraints(str(pathlib.Path(pat_fn_input).relative_to(folder_input))), **wildcards)[0]
-    return get_dict()[rel_fol]
 
-rule retrieve_input_files:
-    input: fn_dat_input
-    output: pat_fn_input
+rule retrieve_zenodo_bf:
+    output:
+          pat_fn_zip
     params:
-        fn_input_file = get_fn_from
-    threads: 1
+          fn = get_zip_fn
     shell:
-        'rsync -u {params.fn_input_file} {output[0]}'
-    #run:
-    #    fn_output = pathlib.Path(output[0])
-    #    fn_base_output = fn_output.relative_to(folder_input)
-    #    fn_input = params[0][str(fn_base_output)]
-    #    pathlib.Path(fn_output).parent.mkdir(exist_ok=True)
-    #    shutil.copy(fn_input, fn_output)
+         'wget -P {folder_zip} {params.fn}'
 
-
+rule unzip_bf_folder:
+    input:
+         fn_zip = pat_fn_zip
+    output: touch(pat_fn_unzip_done)
+    threads: 1
+    params:
+          fol_input = folder_input
+    resources:
+             mem_mb=lambda wildcards, attempt: (attempt * 4000),
+             time='60'
+    shell:
+        'unzip -o {input.fn_zip} -d {params.fol_input}'
 
 rule nb_sphere_size:
     input:
@@ -219,6 +217,7 @@ rule nb_sphere_size:
         fn_fig1_bfspheres = fn_fig1_bfspheres
     conda:
         'envs/bf.yml'
+    container: base_container
     threads: 8
     resources:
         mem='32G'

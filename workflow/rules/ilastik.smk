@@ -51,6 +51,15 @@ def define_ilastik_rules(configs_ilastik, folder_base,
         """Function to retrieve project filename"""
         return configs_ilastik[wildcards.batchname]['project']
 
+    def fkt_resourcs(wildcards):
+        return configs_ilastik[wildcards.batchname].get('resources', {})
+
+    def fkt_resources_mem_mb(wildcards):
+        return fkt_resourcs(wildcards).get('mem_mb', mem_mb)
+
+    def fkt_resources_threads(wildcards):
+        return fkt_resourcs(wildcards).get('threads', threads)
+
     @functools.lru_cache()
     def list_fns(folder):
         fns = [str(fn) for fn in pathlib.Path(folder).rglob('*') if not fn.stem.startswith('.')]
@@ -126,9 +135,9 @@ def define_ilastik_rules(configs_ilastik, folder_base,
         output:
               outfolder = temporary(directory(pat_fol_run))
         container: container_ilastik
-        threads: threads
+        threads: fkt_resources_threads
         resources:
-            mem_mb = mem_mb
+            mem_mb = fkt_resources_mem_mb
         params:
             bin_ilastik=bin_ilastik,
             output_format=lambda wildcards: configs_ilastik[wildcards.batchname]['output_format'],
