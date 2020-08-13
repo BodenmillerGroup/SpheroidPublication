@@ -402,7 +402,8 @@ rule step7_calculate_de:
     output:
         fn_lmm_res=fn_lmm_res,
         fn_lmm_params=fn_lmm_params,
-        fn_lmm_model=fn_lmm_model
+        fn_lmm_model=fn_lmm_model,
+        fn_lmm_absstat=fn_lmm_absstat
     threads: 2
     conda: 'envs/rlmm_env.yml'
     resources:
