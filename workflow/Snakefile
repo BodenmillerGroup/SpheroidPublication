@@ -262,6 +262,7 @@ class AlignmentConf:
     # File containing cropping cordinat (output)
     fn_scene_rcrop = fol_out_meta / 'dat_scene_rcrop.csv'
 
+AlignmentConf.fol_slide.mkdir(exist_ok=True)
 
 config_dict_ilastik.update({
     'dapiqc':
