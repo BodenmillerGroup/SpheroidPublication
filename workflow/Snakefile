@@ -21,6 +21,7 @@ validate(config, "schemas/config_phys.schema.yml")
 ## Input/output
 #input_data_folders = config['input_data_folders']
 input_zenodo_imc_repositories = config['input_zenodo_imc_repositories']
+input_zenodo_varia_repositories = config['input_zenodo_varia_repositories']
 input_zenodo_slidescan_repositories = config['input_zenodo_slidescan_repositories']
 input_file_regexp = config['input_file_regexp']
 
@@ -46,8 +47,9 @@ cp_plugins = config['cellprofiler_plugins']
 # Compensation
 fns_compensation_source = config['compensation']['fns_compensation']
 fns_compensation_ss_panel = config['compensation']['fn_ss_panel']
-folder_compensation_data =  pathlib.Path('resources') / 'compensation_data'
-fns_compensation = [folder_compensation_data / pathlib.Path(fn).name for fn in fns_compensation_source]
+fol_compensation_data = pathlib.Path('resources') / 'compensation_data'
+pat_compensation = str(fol_compensation_data / '{fn_comp}')
+fns_compensation = [fol_compensation_data / fn for fn in fns_compensation_source]
 re_fn_channel_csv = '.*_full\.csv'
 
 # Define hardcoded variables
@@ -111,6 +113,7 @@ folder_cpout_masks = folder_cp /'masks'
 #dict_zip_fns = {fn.stem: fn for fn in hpr.get_filenames_by_re(input_data_folders, input_file_regexp)}
 dict_zip_fns = zenodo.get_file_dicts(input_zenodo_imc_repositories)
 dict_slidescan_fns = zenodo.get_file_dicts(input_zenodo_slidescan_repositories)
+dict_varia_fns = zenodo.get_file_dicts(input_zenodo_varia_repositories)
 
 # Produce a list of all cellprofiler output files
 cp_measurements_output = [fn_cpout_image, fn_cpout_cell, fn_cpout_experiment, fn_cpout_objectrel,
@@ -270,6 +273,7 @@ class AlignmentConf:
     # File containing cropping cordinat (output)
     fn_scene_rcrop = fol_out_meta / 'dat_scene_rcrop.csv'
 
+AlignmentConf.fol_slide.mkdir(exist_ok=True)
 
 config_dict_cp.update({
     'prepare_ilastikgfp': {
@@ -341,6 +345,9 @@ rule all_rawdata:
 
 def get_zip_fn(wildcards):
     return dict_zip_fns[wildcards.zipfol]
+
+def get_comp_fn(wildcards):
+    return dict_varia_fns[wildcards.fn_comp]
 
 def get_slidescan_fn(wildcards):
     return dict_slidescan_fns[wildcards.slidescan]
@@ -548,6 +555,14 @@ rule retrieve_zenodo_imc:
     shell:
          'wget -P {folder_zip} {params.fn}'
 
+rule retrieve_zenodo_comp:
+    output:
+          fns_compensation
+    params:
+          fn = get_comp_fn
+    shell:
+         'wget -P {fol_compensation_data} {params.fn}'
+
 rule retrieve_zenodo_slidescan:
     output:
           AlignmentConf.pat_fn_slidescan
@@ -575,13 +590,4 @@ rule alignment_all_slidescans:
 #          directory(AlignmentConf.fol_slide)
 #    shell:
 #         'rsync -rt {input[0]}/ {output[0]}'
-
-rule compensation_retrieve_data:
-    input:
-         fns_compensation_source
-    output:
-         fns_compensation
-    run:
-        for fn_in, fn_out in zip(input, output):
-            shutil.copy(fn_in, fn_out)
 
