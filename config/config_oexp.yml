@@ -10,6 +10,9 @@ input_zenodo_slidescan_repositories:
   - 655982
   - 655984
 
+input_zenodo_varia_repositories:
+  - 656007
+
 input_data_folders:
   - 'resources/zips'
 
@@ -23,8 +26,8 @@ csv_panel_sphereseg: 'sphereseg'
 
 compensation:
   fns_compensation:
-    - '/mnt/imls-bod/Zoidberg_Data/20190513_bc126v1spillover_slide1_ac5_vz.zip'
-    - '/mnt/imls-bod/Zoidberg_Data/20190513_overexpressionv7spillover_slide1_ac1_vz.zip'
+    - '20190513_bc126v1spillover_slide1_ac5_vz.zip'
+    - '20190513_overexpressionv7spillover_slide1_ac1_vz.zip'
 
   fn_ss_panel:
     'resources/compensation_singlestain_panel.csv'
