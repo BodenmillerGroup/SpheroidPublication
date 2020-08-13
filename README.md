@@ -1,6 +1,8 @@
 # This is the companion repository for the Spheroid Publication
 
-It allows to run all analysis steps from raw data until the paper figures.
+It allows to run all analysis steps from raw data until the paper figures for the paper:
+"A quantitative analysis of the interplay of environment, neighborhood and cell state in 3D spheroids"
+https://doi.org/10.1101/2020.07.24.219659 
 
 While already functional, the repository is *work in progress* and not yet well documented.
 
@@ -23,7 +25,7 @@ Due to technical problems with snakemake subworkflows, currently the subworkflow
 described bellow.
 
 To run a subworkflow:
-- Change into it's main directory: `cd subworkflows/bf_preproc`
+- Change into it's main directory: e.g. `cd subworkflows/bf_preproc`
 - Run snakemake with `conda` and `singularity` support: `snakemake --use-conda --use-singularity`
 
 # Overview
