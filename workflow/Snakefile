@@ -3,7 +3,6 @@ import shutil
 
 from scripts import helpers as hpr
 from scripts.utils_alignment import variables as VarAlign
-from scripts import zenodo
 from snakemake.utils import validate
 
 # Cellprofiler/Ilastik rules
@@ -23,8 +22,8 @@ validate(config, "schemas/config_phys.schema.yml")
 input_zenodo_imc_repositories = config['input_zenodo_imc_repositories']
 input_zenodo_varia_repositories = config['input_zenodo_varia_repositories']
 input_zenodo_slidescan_repositories = config['input_zenodo_slidescan_repositories']
-input_file_regexp = config['input_file_regexp']
 
+input_file_regexp = config['input_file_regexp']
 ## Panel
 csv_panel = config['csv_panel']
 csv_panel_metal = config['csv_panel_metal']
@@ -55,8 +54,15 @@ re_fn_channel_csv = '.*_full\.csv'
 # Define hardcoded variables
 ## Define basic folder structrue
 folder_base = pathlib.Path('results')
+folder_resources = pathlib.Path('resources')
+folder_zip = folder_resources / 'zips'
+folder_zip.mkdir(exist_ok=True)
 
-folder_zip = pathlib.Path('resources') / 'zips'
+folder_slidescan = folder_resources / 'slidescan'
+folder_slidescan.mkdir(exist_ok=True)
+
+folder_varia = folder_resources / 'varia'
+folder_varia.mkdir(exist_ok=True)
 
 folder_ome = folder_base / 'ome'
 folder_analysis = folder_base / 'tiffs'
@@ -111,9 +117,18 @@ folder_cpout_masks = folder_cp /'masks'
 
 # Identify a dictionary of input folders/zips containing .mcd files to process
 #dict_zip_fns = {fn.stem: fn for fn in hpr.get_filenames_by_re(input_data_folders, input_file_regexp)}
-dict_zip_fns = zenodo.get_file_dicts(input_zenodo_imc_repositories)
-dict_slidescan_fns = zenodo.get_file_dicts(input_zenodo_slidescan_repositories)
-dict_varia_fns = zenodo.get_file_dicts(input_zenodo_varia_repositories)
+pat_zenodo_rep = str(folder_resources / '{zenodo_folder}_zenodo_{zenodo_id}.done')
+pat_has_zenodo_imc_repositories = folder_resources / f'{folder_zip.name}_zenodo_{{zenodo_id}}.done'
+all_has_zenodo_imc_repositories = folder_zip / 'zenodo.done'
+fns_has_zenodo_imc_repositories = expand(str(pat_has_zenodo_imc_repositories), zenodo_id=input_zenodo_imc_repositories)
+
+pat_has_zenodo_slidescan_repositories = folder_resources / f'{folder_slidescan.name}_zenodo_{{zenodo_id}}.done'
+all_has_zenodo_slidescan_repositories = folder_slidescan / 'zenodo.done'
+fns_has_zenodo_slidescan_repositories = expand(str(pat_has_zenodo_slidescan_repositories), zenodo_id=input_zenodo_slidescan_repositories)
+
+pat_has_zenodo_varia_repositories = folder_resources / f'{folder_varia.name}_zenodo_{{zenodo_id}}.done'
+all_has_zenodo_varia_repositories = folder_varia / 'zenodo.done'
+fns_has_zenodo_varia_repositories = expand(str(pat_has_zenodo_varia_repositories), zenodo_id=input_zenodo_varia_repositories)
 
 # Produce a list of all cellprofiler output files
 cp_measurements_output = [fn_cpout_image, fn_cpout_cell, fn_cpout_experiment, fn_cpout_objectrel,
@@ -134,12 +149,45 @@ suffix_crop = '_{crop, x[0-9]+_y[0-9]+_w[0-9]+_h[0-9]+}'
 suffix_sphereseg = '_sphereseg'
 
 ## Define derived file patterns
-pat_fn_zip = folder_zip / ('{zipfol}')
+pat_fn_zip = folder_zip / ('{zipfol}.zip')
 pat_fn_mcdparse_done = folder_ome / ('{zipfol}' + suffix_done)
 fn_all_mcd_converted = folder_base / 'all_mcd_converted.done'
 
 ## Init dirs
 folder_ome.mkdir(parents=True, exist_ok=True)
+
+# Download from zenodo
+checkpoint all_zenodo_imc:
+    input: fns_has_zenodo_imc_repositories
+    output: touch(all_has_zenodo_imc_repositories)
+
+checkpoint all_zenodo_slidescan:
+    input: fns_has_zenodo_slidescan_repositories
+    output: touch(all_has_zenodo_slidescan_repositories)
+
+checkpoint all_zenodo_varia:
+    input: fns_has_zenodo_varia_repositories
+    output: touch(all_has_zenodo_slidescan_repositories)
+
+# Check files downloaded from zenodo
+def fns_zenodo_imc(wildcards, checkpoints):
+    checkpoints.all_zenodo_imc.get()
+    return expand(pat_fn_zip, glob_wildcards(pat_fn_zip))
+
+def fns_all_mcd_done(wildcards, checkpoints):
+    checkpoints.all_zenodo_imc.get()
+    return expand(pat_fn_mcdparse_done, glob_wildcards(pat_fn_zip))
+
+def fol_zenodo_slidescan(wildcards, checkpoints):
+    checkpoints.all_zenodo_slidescan.get()
+    return folder_slidescan
+
+def fns_zenodo_comp(wildcards, checkpoints):
+    checkpoints.all_zenodo_varia.get()
+    return fns_compensation
+
+rule all:
+    input: folder_spherecrop_mask, folder_spherecrop_aligned, folder_spherecrop_dapiqc, cp_measurements_output, folder_cpout_masks, folder_cpout_imgs
 
 # Configuration for cellprofiler pipeline steps
 # (Please look at rules/cellprofiler.smk for the documentation of this structure)
@@ -228,8 +276,8 @@ class AlignmentConf:
 
     # The folder containing the slide scans
     fol_slide = pathlib.Path('resources/slidescanner/')
-    pat_fn_slidescan = str(fol_slide / '{slidescan}')
-    fn_all_slides_dl = fol_slide / 'slide_dl.done'
+    pat_fn_slidescan = str(fol_slide / '{slidescan}.czi')
+    fn_all_slides_dl = fns_has_zenodo_slidescan_repositories
 
     # The folder containing the IMC images converted to ometiff
     fol_imc = folder_ome
@@ -334,24 +382,12 @@ config_dict_cp.update({
                                             'imgs': directory(folder_cpout_imgs)})}
 )
 # Target rules
-rule all:
-    input: folder_spherecrop_mask, folder_spherecrop_aligned, folder_spherecrop_dapiqc, cp_measurements_output, folder_cpout_masks, folder_cpout_imgs
 
 rule all_before_alignment:
     input: folder_spherecrop_mask
 
 rule all_rawdata:
-    input: expand(str(pat_fn_zip), zipfol=dict_zip_fns.keys()), AlignmentConf.fn_all_slides_dl, fns_compensation
-
-def get_zip_fn(wildcards):
-    return dict_zip_fns[wildcards.zipfol]
-
-def get_comp_fn(wildcards):
-    return dict_varia_fns[wildcards.fn_comp]
-
-def get_slidescan_fn(wildcards):
-    return dict_slidescan_fns[wildcards.slidescan]
-
+    input: fns_zenodo_imc, AlignmentConf.fn_all_slides_dl, fns_zenodo_comp
 
 # MCD to ome conversion
 rule mcdfolder2imcfolder:
@@ -369,7 +405,7 @@ rule mcdfolder2imcfolder:
         'scripts/convert_imcfolder.py'
 
 checkpoint all_mcd_converted:
-    input: expand(str(pat_fn_mcdparse_done), zipfol=dict_zip_fns.keys())
+    input: fns_all_mcd_done
     output:
         touch(fn_all_mcd_converted)
 
@@ -500,7 +536,7 @@ checkpoint alignment_align_imgs:
 
 rule compensation_prepare_sm:
     input:
-        fns_compensation=fns_compensation,
+        fns_compensation=fns_zenodo_comp,
         fn_ss_panel=fns_compensation_ss_panel
     output:
         fn_sm_mat
@@ -547,42 +583,23 @@ rule clean:
         "rm -R {folder_base}"
 
 ### Data retrieval
-wget_zenodo = 'wget --retry-on-http-error=429 --waitretry 10 '
-rule retrieve_zenodo_imc:
+rule retrieve_zenodo:
     output:
-          pat_fn_zip
+         touch(pat_zenodo_rep)
+    conda:
+         'envs/env_zenodo.yml'
     params:
-          fn = get_zip_fn
+        fol_out = str(folder_resources / '{zenodo_folder}')
     shell:
-         '{wget_zenodo} -P {folder_zip} {params.fn}'
+         '''cd {params.fol_out}
+         python -m zenodo_get  --sandbox {wildcards.zenodo_id}'''
 
-rule retrieve_zenodo_comp:
-    output:
-          pat_compensation
-    params:
-          fn = get_comp_fn
-    shell:
-         '{wget_zenodo} -P {fol_compensation_data} {params.fn}'
-
-rule retrieve_zenodo_slidescan:
-    output:
-          AlignmentConf.pat_fn_slidescan
-    params:
-          fn = get_slidescan_fn
-    shell:
-         '{wget_zenodo} -P {AlignmentConf.fol_slide} {params.fn}'
 #rule retrieve_zip:
 #    output: pat_fn_zip
 #    params:
 #          fn = get_zip_fn
 #    shell:
 #         'rsync -rt {params.fn} {output[0]}'
-
-rule alignment_all_slidescans:
-    input:
-        expand(AlignmentConf.pat_fn_slidescan,slidescan=dict_slidescan_fns.keys())
-    output:
-        touch(AlignmentConf.fn_all_slides_dl)
 
 #rule alignment_retrieve_slidescans:
 #    input:
