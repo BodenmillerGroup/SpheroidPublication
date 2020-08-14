@@ -1,12 +1,25 @@
 URL_ZENODO = 'https://sandbox.zenodo.org'
 import requests
+import time
 def get_meta(dep_id):
-    r = requests.get(f'{URL_ZENODO}/api/records/{dep_id}',
-                   # Headers are not necessary here since "requests" automatically
-                   # adds "Content-Type: application/json", because we're using
-                   # the "json=" keyword argument
-                   # headers=headers,
-                   headers={'Content-Type': 'application/json'})
+    status = 0
+    wait = 0
+    while status == 0:
+        time.sleep(wait)
+        r = requests.get(f'{URL_ZENODO}/api/records/{dep_id}',
+                       # Headers are not necessary here since "requests" automatically
+                       # adds "Content-Type: application/json", because we're using
+                       # the "json=" keyword argument
+                       # headers=headers,
+                       headers={'Content-Type': 'application/json'})
+
+        code = r.status_code
+        if code == 200:
+            status = 1
+        elif code == 429:
+            wait += 1 + (wait**2)
+        else:
+            raise Exception(f'Unexpected Zenodo response: status code: {code} for deposition {dep_id}.')
     rjson = r.json()
     return rjson
 

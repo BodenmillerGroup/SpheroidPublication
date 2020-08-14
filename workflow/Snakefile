@@ -500,21 +500,22 @@ rule clean:
         "rm -R {folder_base}"
 
 ### Data retrieval
+wget_zenodo = 'wget --retry-on-http-error=429 --waitretry 10 '
 rule retrieve_zenodo_imc:
     output:
           pat_fn_zip
     params:
           fn = get_zip_fn
     shell:
-         'wget -P {folder_zip} {params.fn}'
+         '{wget_zenodo} -P {folder_zip} {params.fn}'
 
 rule retrieve_zenodo_comp:
     output:
-          fns_compensation
+          pat_compensation
     params:
           fn = get_comp_fn
     shell:
-         'wget -P {fol_compensation_data} {params.fn}'
+         '{wget_zenodo} -P {fol_compensation_data} {params.fn}'
 
 rule retrieve_zenodo_slidescan:
     output:
@@ -522,7 +523,7 @@ rule retrieve_zenodo_slidescan:
     params:
           fn = get_slidescan_fn
     shell:
-         'wget -P {AlignmentConf.fol_slide} {params.fn}'
+         '{wget_zenodo} -P {AlignmentConf.fol_slide} {params.fn}'
 #rule retrieve_zip:
 #    output: pat_fn_zip
 #    params:
