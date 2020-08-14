@@ -557,7 +557,7 @@ rule retrieve_zenodo_imc:
 
 rule retrieve_zenodo_comp:
     output:
-          fns_compensation
+          pat_compensation
     params:
           fn = get_comp_fn
     shell:
