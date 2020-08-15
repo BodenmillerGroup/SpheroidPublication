@@ -23,7 +23,7 @@ input_zenodo_imc_repositories = config['input_zenodo_imc_repositories']
 input_zenodo_varia_repositories = config['input_zenodo_varia_repositories']
 input_zenodo_slidescan_repositories = config['input_zenodo_slidescan_repositories']
 
-input_file_regexp = config['input_file_regexp']
+
 ## Panel
 csv_panel = config['csv_panel']
 csv_panel_metal = config['csv_panel_metal']
@@ -46,10 +46,6 @@ cp_plugins = config['cellprofiler_plugins']
 # Compensation
 fns_compensation_source = config['compensation']['fns_compensation']
 fns_compensation_ss_panel = config['compensation']['fn_ss_panel']
-fol_compensation_data = pathlib.Path('resources') / 'compensation_data'
-pat_compensation = str(fol_compensation_data / '{fn_comp}')
-fns_compensation = [fol_compensation_data / fn for fn in fns_compensation_source]
-re_fn_channel_csv = '.*_full\.csv'
 
 # Define hardcoded variables
 ## Define basic folder structrue
@@ -88,9 +84,29 @@ def fkt_fns_dapi(wildcards):
     checkpoints.alignment_align_imgs.get()
     return [str(fn.resolve()) for fn in folder_spherecrop_aligned.glob('*_if_fcrop_c0_s2.tiff')]
 
+# Define Zenodo source data
+pat_zenodo_rep = str(folder_resources / '{zenodo_folder}_zenodo_{zenodo_id}.done')
+pat_has_zenodo_imc_repositories = str(folder_resources / f'{folder_zip.name}_zenodo_{{zenodo_id}}.done')
+all_has_zenodo_imc_repositories = folder_zip / 'zenodo.done'
+fns_has_zenodo_imc_repositories = expand(str(pat_has_zenodo_imc_repositories), zenodo_id=input_zenodo_imc_repositories)
+
+pat_has_zenodo_slidescan_repositories = str(folder_resources / f'{folder_slidescan.name}_zenodo_{{zenodo_id}}.done')
+all_has_zenodo_slidescan_repositories = folder_slidescan / 'zenodo.done'
+fns_has_zenodo_slidescan_repositories = expand(str(pat_has_zenodo_slidescan_repositories), zenodo_id=input_zenodo_slidescan_repositories)
+
+pat_has_zenodo_varia_repositories = str(folder_resources / f'{folder_varia.name}_zenodo_{{zenodo_id}}.done')
+all_has_zenodo_varia_repositories = folder_varia / 'zenodo.done'
+fns_has_zenodo_varia_repositories = expand(str(pat_has_zenodo_varia_repositories), zenodo_id=input_zenodo_varia_repositories)
+
+
 folder_cp = folder_base / 'cpout'
 
 folder_classifiers = folder_base / 'classifiers'
+
+fol_compensation_data = folder_varia
+pat_compensation = str(fol_compensation_data / '{fn_comp}')
+fns_compensation = [str(fol_compensation_data / fn) for fn in fns_compensation_source]
+re_fn_channel_csv = '.*_full\.csv'
 
 # Spillover output files
 fn_sm_mat = folder_base / 'sm.csv'
@@ -107,20 +123,6 @@ fn_cpout_objectrel = folder_cp / 'Object relationships.csv'
 folder_cpout_imgs = folder_cp / 'imgs'
 folder_cpout_masks = folder_cp /'masks'
 
-# Identify a dictionary of input folders/zips containing .mcd files to process
-#dict_zip_fns = {fn.stem: fn for fn in hpr.get_filenames_by_re(input_data_folders, input_file_regexp)}
-pat_zenodo_rep = str(folder_resources / '{zenodo_folder}_zenodo_{zenodo_id}.done')
-pat_has_zenodo_imc_repositories = str(folder_resources / f'{folder_zip.name}_zenodo_{{zenodo_id}}.done')
-all_has_zenodo_imc_repositories = folder_zip / 'zenodo.done'
-fns_has_zenodo_imc_repositories = expand(str(pat_has_zenodo_imc_repositories), zenodo_id=input_zenodo_imc_repositories)
-
-pat_has_zenodo_slidescan_repositories = str(folder_resources / f'{folder_slidescan.name}_zenodo_{{zenodo_id}}.done')
-all_has_zenodo_slidescan_repositories = folder_slidescan / 'zenodo.done'
-fns_has_zenodo_slidescan_repositories = expand(str(pat_has_zenodo_slidescan_repositories), zenodo_id=input_zenodo_slidescan_repositories)
-
-pat_has_zenodo_varia_repositories = str(folder_resources / f'{folder_varia.name}_zenodo_{{zenodo_id}}.done')
-all_has_zenodo_varia_repositories = folder_varia / 'zenodo.done'
-fns_has_zenodo_varia_repositories = expand(str(pat_has_zenodo_varia_repositories), zenodo_id=input_zenodo_varia_repositories)
 
 # Produce a list of all cellprofiler output files
 cp_measurements_output = [fn_cpout_image, fn_cpout_cell, fn_cpout_experiment, fn_cpout_objectrel,
@@ -270,7 +272,7 @@ class AlignmentConf:
     fn_slidematch = pathlib.Path('resources/20190506_bigstain_selection_final_if_imcalign_v1.csv')
 
     # The folder containing the slide scans
-    fol_slide = pathlib.Path('resources/slidescanner/')
+    fol_slide = folder_slidescan
     pat_fn_slidescan = str(fol_slide / '{slidescan}.czi')
     fn_all_slides_dl = fns_has_zenodo_slidescan_repositories
 
