@@ -1,7 +1,6 @@
 import pathlib
 import os
 
-from scripts import zenodo
 from scripts import helpers as hpr
 from snakemake.utils import validate
 from snakemake.io import strip_wildcard_constraints, expand
@@ -74,42 +73,21 @@ folder_input = folder_resources / 'bfimages'
 folder_input.mkdir(exist_ok=True)
 folder_zip = folder_resources / 'zips'
 folder_zip.mkdir(exist_ok=True)
-pat_fn_zip = folder_zip / ('{zipfol}')
-pat_fn_unzip_done = folder_input / ('{zipfol}' + suffix_done)
+pat_fn_zip = folder_zip / ('{zipfol}.zip')
+pat_fn_unzip_done = str(folder_input / ('{zipfol}' + suffix_done))
 
 done_rescale = folder_analysis / 'rescale.done'
 fol_scale_combined =  folder_analysis / 'cp_rescale'/ 'combined'
 
 FN_DICT = None
-def get_dict():
-    global FN_DICT
-    if FN_DICT is None:
-        dat = pd.read_csv(fn_dat_input)
-        d = {str(out): str(inp) for inp, out in
-             dat.loc[:, ['input_url', 'output_filename']].values}
-        FN_DICT = d
-    else:
-        d = FN_DICT
-    return d
+
+# Define zenodo folders/files
+pat_zenodo_rep = str(folder_resources / '{zenodo_folder}_zenodo_{zenodo_id}.done')
+pat_has_zenodo_bfzip_repositories = str(folder_resources / f'{folder_zip.name}_zenodo_{{zenodo_id}}.done')
+all_has_zenodo_bfzip_repositories = folder_zip / 'zenodo.done'
+fns_has_zenodo_bfzip_repositories = expand(str(pat_has_zenodo_bfzip_repositories), zenodo_id=input_zenodo_bf_repositories)
 
 # Define dynamic files
-## Define (dynamic) input file functions
-def fkt_fns_input(wildcards):
-    """
-    Identifies the input images.
-    :param wildcards: wildcards dynamically provided by snakemake
-    :return: A list of all `.ome.tiffs` generated.
-    """
-    checkpoints.define_input_files.get()
-    fns_output = get_dict().keys()
-    return expand(str(pat_fn_unzip_done), zipfol=fns_output)
-
-# Define dynamic files
-## Define (dynamic) input file functions
-
-def get_zip_fn(wildcards):
-    return get_dict()[wildcards.zipfol]
-
 ## Define derived (dynamic) input files functions
 ## This generates functions to define input filenames based on other input filename functions
 
@@ -124,6 +102,16 @@ fn_fig1_bfspheres = folder_results / 'fig1_bfspheres.png'
 rule all:
     input: cp_meas_output, folder_cp_ov, folder_scaled, fn_hqspheres
 
+checkpoint all_zenodo_bfzips:
+    input: fns_has_zenodo_bfzip_repositories
+    output: touch(all_has_zenodo_bfzip_repositories)
+
+
+def fns_zenodo_bfzips_done(wildcards):
+    checkpoints.all_zenodo_bfzips.get()
+    zipfols, = glob_wildcards(pat_fn_zip)
+    return expand(pat_fn_unzip_done, zipfol=zipfols)
+
 rule scaled_imgs:
     input:
          folder_scaled
@@ -134,7 +122,7 @@ config_dict_cp = {
         'run_size': 50,
         'plugins': cp_plugins,
         'pipeline': str(fn_cp_scaling),
-        'input_files': [folder_input, fkt_fns_input],
+        'input_files': [folder_input, fns_zenodo_bfzips_done],
         'output_patterns': {'scaled': directory(folder_scaled)},
     },
     'segmasks': {
@@ -180,15 +168,6 @@ checkpoint define_input_files:
         dat_input = pd.DataFrame(tup_fn, columns=['output_filename','input_url'])
         dat_input.to_csv(fn_dat_input, index=False)
 
-
-rule retrieve_zenodo_bf:
-    output:
-          pat_fn_zip
-    params:
-          fn = get_zip_fn
-    shell:
-         'wget -P {folder_zip} {params.fn}'
-
 rule unzip_bf_folder:
     input:
          fn_zip = pat_fn_zip
@@ -226,6 +205,17 @@ rule nb_sphere_size:
         notebook="logs/notebooks/1_sphere_size.py.ipynb"
     notebook:
         "notebooks/1_sphere_size.py.ipynb"
+
+rule retrieve_zenodo:
+    output:
+          touch(pat_zenodo_rep)
+    conda:
+         'envs/env_zenodo.yml'
+    params:
+          fol_out = str(folder_resources / '{zenodo_folder}')
+    shell:
+         '''cd {params.fol_out}
+         python -m zenodo_get  --sandbox {wildcards.zenodo_id}'''
 
 fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
 fol_cluster = pathlib.Path('vizano@cluster.s3it.uzh.ch:/scratch/vizano/SpheroidPublication')
