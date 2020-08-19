@@ -296,11 +296,20 @@ rule step4_4_add_cellstate_class:
     notebook:
         'notebooks/4_4_add_cellstate_class.py.ipynb'
 
-exp_celllines = ['T47D', '293T', 'HT29', 'DLD1']
+exp_celllines = [ 'HT-29', 'DLD-1', 'T-REx-293', 'T-47D']
 exp_timepoints = ['72', '96']
 exp_concentrations = ['0.25' , '0.5', '1.0']
 perrep = [0,1]
 res_types = ['stats', 'params']
+
+all_conds = expand('{cl}_c{c}_tp{tp}', cl=exp_celllines, c=exp_concentrations, tp=exp_timepoints)
+main_conds = [f'{cl}_c{c}_tp{tp}' 
+                  for cl, c, tp in 
+                  [('T-REx-293', '0.5', '96'),
+                   ('HT-29','0.5','96'),
+                   ('DLD-1','0.5', '96'),
+                   ('T-47D', '1.0', '96')] ]
+
 
 fol_modstats = fol_results / 'modstats'
 fol_modstats_percond = fol_modstats / 'percond'
@@ -348,6 +357,10 @@ rule step6_results_marker_relations:
         fn_modstats_params = expand(fn_modstats, res_types='params', rep=0)[0],
         fn_panel_ord = fol_resources / 'pannel_ordered.csv',
         fn_bf_quantification = fn_bf_quantification
+    params:
+        all_conds = all_conds,
+        main_conds = main_conds,
+        celllines = exp_celllines
     output:
           fol_out = directory(fol_figures_marker_relationship)
     conda: 'envs/spherpro_env.yml'
@@ -370,6 +383,10 @@ rule step6_celline_heatmap:
          fn_modstats_params = expand(fn_modstats, res_types='params', rep=0)[0],
          fn_panel_ord = fol_resources / 'pannel_ordered.csv',
          fn_bf_quantification = fn_bf_quantification
+    params:
+         all_conds = all_conds,
+         main_conds = main_conds,
+         celllines = exp_celllines
     output:
          fol_out = directory(fol_figures_cellline_heatmap)
     conda: 'envs/spherpro_env.yml'
@@ -392,6 +409,10 @@ rule step6_optimal_ord:
          fn_modstats_params = expand(fn_modstats, res_types='params', rep=0)[0],
          fn_panel_ord = fol_resources / 'pannel_ordered.csv',
          fn_bf_quantification = fn_bf_quantification
+    params:
+         all_conds = all_conds,
+         main_conds = main_conds,
+         celllines = exp_celllines
     output:
           fol_out = directory(fol_figures_optimal_ord)
     conda: 'envs/spherpro_env.yml'
