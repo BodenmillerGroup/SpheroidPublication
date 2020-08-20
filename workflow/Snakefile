@@ -5,7 +5,7 @@ import pathlib
 import pandas as pd
 from snakemake.io import expand, glob_wildcards
 
-from workflow.scripts import zenodo
+from scripts import zenodo
 
 # Global conda container
 base_container = 'docker://votti/miniconda3mamba:mamba0.3.0'
@@ -304,7 +304,7 @@ config_dict_ilastik = {
         'output_filename': f'{{nickname}}{suffix_probablities}{suffix_tiff}',
         'export_source': 'Probabilities',
         'export_dtype': 'uint8',
-        'pipeline_result_drange': ''(0.0, 1.0)'',
+        'pipeline_result_drange': '"(0.0, 1.0)"',
         'input_files': str(folder_scaled),
         'output_pattern': directory(folder_probab)
     }
@@ -354,8 +354,8 @@ fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
 fol_cluster = pathlib.Path('vizano@cluster.s3it.uzh.ch:/scratch/vizano/SpheroidPublication')
 rule sync_to_cluster:
     shell:
-         f'rsync -rtu {fol_local / 'subworkflows/bf_preproc'} {fol_cluster / 'subworkflows'} --progress --exclude='.*' --exclude='pkgs/' --exclude='.snakemake' --exclude='results/''
+         f"rsync -rtu {fol_local / 'subworkflows/bf_preproc'} {fol_cluster / 'subworkflows'} --progress --exclude='.*' --exclude='pkgs/' --exclude='.snakemake' --exclude='results/'"
 
 rule sync_from_cluster:
     shell:
-         f'rsync -rtu {fol_cluster / 'subworkflows/bf_preproc'} {fol_local / 'subworkflows'}  --progress --exclude='.*' --exclude='phys/resources' --exclude 'phys/pkgs' --exclude='results/align_trakem2''
+         f"rsync -rtu {fol_cluster / 'subworkflows/bf_preproc'} {fol_local / 'subworkflows'}  --progress --exclude='.*' --exclude='phys/resources' --exclude 'phys/pkgs' --exclude='results/align_trakem2'"
