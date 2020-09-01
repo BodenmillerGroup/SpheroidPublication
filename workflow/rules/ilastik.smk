@@ -110,7 +110,7 @@ def define_ilastik_rules(configs_ilastik, folder_base,
                 input:
                      expand(str(pat_fol_combined), batchname=batchname)
                 output: outval
-                message: 'Move folder'
+                message: f'Move output folder {outval} for Ilastik run "{batchname}"'
                 params:
                 shell:
                     """
@@ -121,7 +121,7 @@ def define_ilastik_rules(configs_ilastik, folder_base,
                 input:
                      expand(str(pat_fol_combined), batchname=batchname)
                 output: outval
-                message: 'Move file'
+                message: f'Move output file {outval} for Ilastik run "{batchname}"'
                 shell:
                     """
                     mv {input[0]}/"$(basename "{output[0}")" "{output[0]}"'
@@ -129,6 +129,7 @@ def define_ilastik_rules(configs_ilastik, folder_base,
 
     # Define rules
     rule ilastik_run_batch:
+        message: 'Run image sets {wildcards.start} to {wildcards.end} for Ilastik run "{wildcards.batchname}"'
         input:
              fns = fkt_fns_run,
              project = fkt_fn_project
@@ -159,6 +160,7 @@ def define_ilastik_rules(configs_ilastik, folder_base,
             # The first file is added again as Ilastik seems to ignore the first input file :/
 
     checkpoint ilastik_combine_batch_output:
+        message: 'Combine output for Ilastik run "{wildcards.batchname}"'
         input:
             fkt_fols_run  # function that retrieves all groups for a batch
         output: temporary(directory(pat_fol_combined))
@@ -168,5 +170,6 @@ def define_ilastik_rules(configs_ilastik, folder_base,
             hpr.combine_directories(params.fkt_input, output[0])
 
     checkpoint ilastik_input_exists:
+        message: 'Verify that all input files exist for Ilastik run "{wildcards.batchname}"'
         input: fkt_ilastik_input
         output: touch(pat_fn_hasinput)
