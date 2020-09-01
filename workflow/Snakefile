@@ -440,6 +440,39 @@ rule step6_optimal_ord:
         'notebooks/6_2_r2_optimal_ord.py.ipynb'
 
 
+## Varia:
+rule visualize_qc:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         is_d2rim=fn_db_d2rim
+    conda: 'envs/spherpro_env.yml'
+    container: container_base
+    threads: 8
+    resources:
+             mem='64G',
+             time='60'
+    log:
+       notebook='logs/99_qc_examples.py.ipynb'
+    notebook:
+            'notebooks/99_qc_examples.py.ipynb'
+
+rule site_overviews:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         is_d2rim=fn_db_d2rim,
+         fol_ome=folder_ome
+    conda: 'envs/spherpro_env.yml'
+    container: container_base
+    threads: 8
+    resources:
+             mem='64G',
+             time='60'
+    log:
+       notebook='logs/99_site_overviews.py.ipynb'
+    notebook:
+            'notebooks/99_site_overviews.py.ipynb'
 # Varia
 fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
 fol_cluster = pathlib.Path('vizano@cluster.s3it.uzh.ch:/scratch/vizano/SpheroidPublication')
