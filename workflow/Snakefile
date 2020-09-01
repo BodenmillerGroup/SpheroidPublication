@@ -48,7 +48,7 @@ fn_cp_scaling = folder_resources / 'cp_pipelines/1_rescale_bf.cppipe'
 
 '''
 Trained Ilastik project that classifies pixels:
-Classifies pixels as a) sphere center, b) sphere border, c) background
+Classifies pixels as a) sphere b) background
 '''
 fn_ilastik_proj = folder_resources / 'classifiers/bfsegmentation.ilp'
 
@@ -292,8 +292,7 @@ config_dict_ilastik = {
             '''
             Classifier to convert brightfield images into a probability
             mask with classes:
-                sphere center: pixels in sphere center,
-                sphere border: pixels at sphere border,
+                sphere: pixels in sphere
                 background: background pixels
             
             For training only in-focus planes have been used.
