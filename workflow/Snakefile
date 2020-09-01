@@ -61,8 +61,8 @@ fn_db_d2rim = fol_db / 'd2rimapplied.done'
 fn_db_cellclass = fol_db / 'cellsclassified.done'
 
 # all preprocessing files needed:
-folder_preproc_cp = pathlib.Path('results')
-folder_preproc_cp = folder_preproc_cp / 'cpout'
+folder_preproc_cp = pathlib.Path('results') / 'cpout'
+folder_ome = pathlib.Path('results')  / 'ome'
 ## Define Output files
 fn_cpout_image = folder_preproc_cp / 'Image.csv'
 fn_cpout_cell = folder_preproc_cp / 'cell.csv'
@@ -93,7 +93,6 @@ rule get_panel:
     run:
         shutil.copy(input[0], output[0])
 
-# TODO: also link ome folder!
 rule get_cpout:
     input: cp_measurements_output_srt
     output: cp_measurements_output
@@ -105,6 +104,18 @@ rule get_cpout:
             # to this workaround.
             cmd = f'rsync -rts "{s}" "{pathlib.Path(t).parent}"'
             subp.check_call(str(cmd), shell=True)
+
+rule get_ome:
+    input: phys_preproc('results/all_mcd_converted.done')
+    output: directory(folder_ome)
+    run:
+        folder_ome.mkdir(exist_ok=True)
+        # Somehow shutil copytree and co failed
+        # likely to to a NFS related error. Resorting
+        # to this workaround.
+        parent = pathlib.Path(input[0]).parent / 'ome'
+        cmd = f'rsync -rts "{parent}" "{pathlib.Path(output[0]).parent}"'
+        subp.check_call(str(cmd), shell=True)
 
 rule get_bf_quantification:
     input: bf_preproc('results/hq_spheres.csv')
@@ -278,6 +289,7 @@ rule step4_3_correct2drim:
     notebook:
        'notebooks/4_3_correct2drim.py.ipynb'
 
+
 rule step4_4_add_cellstate_class:
     input:
          fn_config=fn_sp_config,
@@ -362,7 +374,8 @@ rule step6_results_marker_relations:
         main_conds = main_conds,
         celllines = exp_celllines
     output:
-          fol_out = directory(fol_figures_marker_relationship)
+        fol_out = directory(fol_figures_marker_relationship),
+        fn_example_submodels = report(fol_figures / 'fig3_example_submodels.png', caption='report/example_submodels.rst')
     conda: 'envs/spherpro_env.yml'
     container: container_base
     threads: 8
@@ -388,7 +401,7 @@ rule step6_celline_heatmap:
          main_conds = main_conds,
          celllines = exp_celllines
     output:
-         fol_out = directory(fol_figures_cellline_heatmap)
+         fol_out = directory(fol_figures_cellline_heatmap),
     conda: 'envs/spherpro_env.yml'
     container: container_base
     threads: 8
