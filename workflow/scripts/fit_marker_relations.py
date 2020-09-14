@@ -150,10 +150,10 @@ def calc_lm(mark, lm_data, dat_measmeta):
     meas_dat = set(lm_data.columns)
     # retrieve various lists of channels
     col_curmark = dat_measmeta.loc[
-        (dat_measmeta[V.COL_MEASNAME] == 'MeanIntensityComp')
-        & (dat_measmeta[V.COL_CHANNELNAME] == mark)
+       # (dat_measmeta[V.COL_MEASNAME] == 'MeanIntensityComp')
+       # &
+        (dat_measmeta[V.COL_CHANNELNAME] == mark)
         , V.COL_MEASID].iloc[0]
-    col_meas = list(set(dat_measmeta.loc[dat_measmeta[V.COL_MEASTYPE] == 'Intensity', V.COL_MEASID]) & meas_dat)
     col_dist = list(set(dat_measmeta.loc[dat_measmeta[V.COL_MEASNAME] == 'dist-rim', V.COL_MEASID]) & meas_dat)
     col_nb = list(
         set(dat_measmeta.loc[dat_measmeta[V.COL_MEASNAME] == 'NbMeanMeanIntensityComp', V.COL_MEASID]) & meas_dat)
@@ -165,6 +165,9 @@ def calc_lm(mark, lm_data, dat_measmeta):
                                          (dat_measmeta[V.COL_IS_CC] == True), V.COL_MEASID]) & meas_dat)
     col_curmark_meas = list(set(dat_measmeta.loc[dat_measmeta[V.COL_CHANNELNAME] == mark, V.COL_MEASID]) & meas_dat)
 
+    col_not_working = list(set(dat_measmeta.loc[~dat_measmeta[V.COL_CHANNELNAME].isin(get_working_channels(dat_measmeta)),
+                                            V.COL_MEASID]))
+
     # reshape the data
     tdat = lm_data
     tdat = tdat.dropna()
@@ -172,19 +175,23 @@ def calc_lm(mark, lm_data, dat_measmeta):
     renamer = Renamer()
     rcol_others_int = list(map(renamer.rename, tdat.columns[(~tdat.columns.isin([
                                                                                     V.COL_SITEID] +
-                                                                                col_curmark_meas
+                                                                                col_curmark_meas +
+                                                                                col_not_working
                                                                                 ) & tdat.columns.isin(col_int))]))
     rcol_others_cc = list(map(renamer.rename, tdat.columns[(~tdat.columns.isin([
                                                                                    V.COL_SITEID] +
-                                                                               col_curmark_meas
+                                                                               col_curmark_meas +
+                                                                               col_not_working
                                                                                ) & tdat.columns.isin(col_cc))]))
     rcol_others_nb = list(map(renamer.rename, tdat.columns[(~tdat.columns.isin([
                                                                                    V.COL_SITEID] +
-                                                                               col_curmark_meas
+                                                                               col_curmark_meas +
+                                                                               col_not_working
                                                                                ) & tdat.columns.isin(col_nb))]))
     rcol_others_nbcc = list(map(renamer.rename, tdat.columns[(~tdat.columns.isin([
                                                                                      V.COL_SITEID] +
-                                                                                 col_curmark_meas
+                                                                                 col_curmark_meas +
+                                                                                 col_not_working
                                                                                  ) & tdat.columns.isin(col_nbcc))]))
 
     rcol_cur_nb = list(map(renamer.rename, tdat.columns[(tdat.columns.isin(col_curmark_meas
@@ -249,11 +256,17 @@ def get_meta(bro):
     hpr = helpers_vz.HelperVZ(bro)
     dat_pannelcsv = hpr.get_pannelcsv()
     dat_measmeta = hpr.get_measuremeta(dat_pannelcsv,
-                                       additional_measfilt=sa.and_(db.stacks.stack_name == 'Dist',
-                                                                   db.measurements.measurement_name == 'dist-rim',
-                                                                   db.ref_planes.channel_name == 'object'))
+                                       additional_measfilt=sa.and_(sa.or_(
+                                           sa.and_(db.stacks.stack_name == 'Dist',
+                                               db.measurements.measurement_name == 'dist-rim',
+                                               db.ref_planes.channel_name == 'object'),
+                                                sa.and_(
+                                                    sa.and_(db.stacks.stack_name == 'FullStackFiltered',
+                                                            db.measurements.measurement_name == 'MeanIntensityComp',
+                                                            db.ref_planes.channel_name.in_(['Pt194',
+                                                                                           'Te184']),
+                                                )))))
 
-    fil_good_meas = hpr.get_fil_good_meas(dat_measmeta)
     dat_imgmeta = hpr.get_imgmeta()
     dat_measmeta = dat_measmeta.merge(dat_pannelcsv, how='left')
     dat_measmeta[V.COL_IS_CC] = dat_measmeta[V.COL_IS_CC] == 1
@@ -263,9 +276,10 @@ def get_meta(bro):
 
 def get_data(bro, cur_cond, obj_type, dat_measmeta):
     hpr = helpers_vz.HelperVZ(bro)
-    fil_good_meas = hpr.get_fil_good_meas(dat_measmeta)
+    fil_good_meas = db.measurements.measurement_id.in_(dat_measmeta[V.COL_MEASID])
     d = hpr.get_data(cond_ids=get_condids_for_cond(bro, cur_cond),
-                     fil_good_meas=fil_good_meas, object_type=obj_type)
+                 fil_good_meas=fil_good_meas,
+                     object_type=obj_type)
     d = transf_intensities(d, dat_measmeta)
     return d
 
@@ -282,7 +296,7 @@ def run_per_condition(dat, dat_measmeta, dat_imgmeta):
     cur_calc_lm = functools.partial(calc_lm, lm_data=d,
                                     dat_measmeta=dat_measmeta)
     rdic = dict()
-    for c in get_working_channels(dat_measmeta):
+    for c in dat_measmeta[V.COL_CHANNELNAME].unique():
         rdic.update({c: cur_calc_lm(c)})
     return rdic
 
@@ -298,7 +312,7 @@ def run_per_replicate(dat, dat_measmeta, dat_imgmeta):
         cur_calc_lm = functools.partial(calc_lm, lm_data=lmdat,
                                         dat_measmeta=dat_measmeta)
         rdic = {}
-        for c in get_working_channels(dat_measmeta):
+        for c in dat_measmeta[V.COL_CHANNELNAME].unique():
             rdic.update({c: cur_calc_lm(c)})
         res_rep[cond_id] = rdic
     return res_rep
@@ -377,7 +391,7 @@ def run_analysis(fn_config, cur_cond, fn_out_stats,
 
 if __name__ == '__main__':
     sm = snakemake
-    cur_cond = f'{sm.wildcards.cellline}_c{sm.wildcards.conc}_te%_tp{sm.wildcards.tp}'
+    cur_cond = f'{sm.wildcards.cellline}_c{sm.wildcards.conc}_tp{sm.wildcards.tp}'
     per_rep = int(sm.wildcards.rep) == 1
     run_analysis(sm.input.fn_config,
                  cur_cond,
