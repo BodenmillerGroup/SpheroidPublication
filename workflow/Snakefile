@@ -450,7 +450,7 @@ rule visualize_qc:
     container: container_base
     threads: 8
     resources:
-             mem='64G',
+             mem='32G',
              time='60'
     log:
        notebook='logs/99_qc_examples.py.ipynb'
@@ -467,7 +467,7 @@ rule site_overviews:
     container: container_base
     threads: 8
     resources:
-             mem='64G',
+             mem='32G',
              time='60'
     log:
        notebook='logs/99_site_overviews.py.ipynb'
@@ -490,6 +490,25 @@ rule umap_analysis:
        notebook='logs/99_umap_analysis.py.ipynb'
     notebook:
             'notebooks/99_umap_analysis.py.ipynb'
+    
+rule apoptosis_imgs:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         is_cc=fn_db_cellclass,
+         fn_panel_ord = fol_resources / 'pannel_ordered.csv'
+    output:
+         fol_out=fol_figures / 'apoptosis_imgs'
+    conda: 'envs/spherpro_env.yml'
+    container: container_base
+    threads: 8_
+    resources:
+             mem='32G',
+             time='60'
+    log:
+       notebook='logs/99_apoptosis_imgs.py.ipynb'
+    notebook:
+            'notebooks/99_apoptosis_imgs.py.ipynb'
 # Varia
 fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
 fol_cluster = pathlib.Path('vizano@cluster.s3it.uzh.ch:/scratch/vizano/SpheroidPublication')
