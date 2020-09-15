@@ -29,6 +29,12 @@ def oexp_preproc(fn):
 def bf_preproc(fn):
     return str(pathlib.Path("../bf_preproc") / fn)
 
+subworkflow phys_analysis:
+    workdir:
+           "../../phys_analysis"
+    snakefile:
+             "../../phys_analysis/workflow/Snakefile"
+
 # Read Configuration
 #configfile: 'config/config_oexp_analysis.yml'
 
@@ -65,10 +71,7 @@ fol_manual_qc.mkdir(parents=True, exist_ok=True)
 
 # Analysis output
 fol_figures = fol_results / 'figures'
-fol_figures_marker_relationship = fol_figures / 'marker_relationship'
-fol_figures_cellline_heatmap = fol_figures / 'cellline_heatmap'
-fol_figures_optimal_ord = fol_figures / 'optimal_ord'
-fol_figures_lmm = fol_figures / 'lmm'
+fol_figures_oexp_de_results = fol_figures / 'oexp_de_res'
 
 # Linear mixed effects modeling
 fol_lmm = fol_results /'lmm'
@@ -78,6 +81,8 @@ fn_lmm_res = str(fol_lmm / '{channel}_fit.Rdata')
 fn_lmm_params = f'{fn_lmm_res}_parameters.csv'
 fn_lmm_absstat = f'{fn_lmm_res}_absstat.csv'
 fn_lmm_model = f'{fn_lmm_res}_model.csv'
+fn_lmm_randeff = f'{fn_lmm_res}_randomeff.csv'
+fn_lmm_predict = f'{fn_lmm_res}_predict.csv'
 
 dat_panel = pd.read_csv(fn_panel_src)
 def get_all_chans(panel):
@@ -117,10 +122,14 @@ cp_measurements_output = [fn for fn in (fn_cpout_objectrel,
 
 cp_measurements_output_srt = [oexp_preproc(str(fn)) for fn in cp_measurements_output]
 
+#
+fn_phys_analysis_modstats_src = 'results/modstats/dat_mod_stats_perrep0.csv'
+fn_phys_analysis_modstats = 'resources/phys_analysis_dat_mod_stats_perrep0.csv'
+fn_sigstats=fol_results/'dat_issig.csv'
 
 # Target rules
 rule all:
-    input: fn_panel, fn_db, has_db_d2rim, has_db_id_overexpression, fol_figures_lmm
+    input: fn_panel, fn_db, has_db_d2rim, has_db_id_overexpression, fol_figures_oexp_de_results
 
 rule get_panel:
     input: fn_panel_src
@@ -154,6 +163,13 @@ rule get_bf_qc:
     input: bf_preproc('resources/bfqc_manual_v1.csv')
     output:
           fn_bf_qc
+    shell:
+         'cp {input} {output}'
+
+rule get_modstats:
+    input: phys_analysis(fn_phys_analysis_modstats_src)
+    output:
+        fn_phys_analysis_modstats
     shell:
          'cp {input} {output}'
 
@@ -403,7 +419,9 @@ rule step7_calculate_de:
         fn_lmm_res=fn_lmm_res,
         fn_lmm_params=fn_lmm_params,
         fn_lmm_model=fn_lmm_model,
-        fn_lmm_absstat=fn_lmm_absstat
+        fn_lmm_absstat=fn_lmm_absstat,
+        fn_lmm_randeff=fn_lmm_randeff,
+        fn_lmm_predict=fn_lmm_predict
     threads: 2
     conda: 'envs/rlmm_env.yml'
     resources:
@@ -420,13 +438,18 @@ rule step7_oexp_results:
          oexp_prep=has_db_oexp_classes,
          fns_lmm_absstat=expand(str(fn_lmm_absstat), channel=get_all_chans(dat_panel)),
          fns_lmm_params=expand(str(fn_lmm_params), channel=get_all_chans(dat_panel)),
+         fns_lmm_model=expand(str(fn_lmm_model), channel=get_all_chans(dat_panel)),
+         fns_lmm_randeff=expand(str(fn_lmm_randeff), channel=get_all_chans(dat_panel)),
          fn_panel_ordered=fn_panel_ordered,
          fn_construct_meta=fn_construct_meta
     output:
-         fol_figures=directory(fol_figures_lmm)
+         fol_figures=directory(fol_figures_oexp_de_results),
+         fn_out_sig=fn_sigstats
     params:
          pat_lmm_params= lambda x: fn_lmm_params,
-         pat_lmm_absstat= lambda x: fn_lmm_absstat
+         pat_lmm_absstat= lambda x: fn_lmm_absstat,
+         pat_lmm_model= lambda x: fn_lmm_model,
+         pat_lmm_randeff = lambda x: fn_lmm_randeff
     conda: 'envs/spherpro_env.yml'
     threads: 2
     resources:
@@ -438,6 +461,7 @@ rule step7_oexp_results:
         'notebooks/7_2_overexpression_results.py.ipynb'
 
 # Varia
+
 fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
 fol_cluster = pathlib.Path('vizano@cluster.s3it.uzh.ch:/scratch/vizano/SpheroidPublication')
 rule sync_to_cluster:
