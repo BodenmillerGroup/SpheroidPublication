@@ -460,6 +460,47 @@ rule step7_oexp_results:
     notebook:
         'notebooks/7_2_overexpression_results.py.ipynb'
 
+rule step7_marker_var_vs_oexp:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fn_modstats=fn_phys_analysis_modstats,
+         fn_sigstats=fn_sigstats
+    output:
+         fol_plots=directory(fol_figures / 'marker_vs_oexp')
+    
+    params:
+          fol_figures=fol_figures
+    conda: 'envs/spherpro_env.yml'
+    threads: 2
+    resources:
+             mem='16G',
+             time='60'
+    log:
+       notebook='logs/7_99_marker_variability_vs_oexpsig.py.ipynb'
+    notebook:
+            'notebooks/7_99_marker_variability_vs_oexpsig.py.ipynb'
+
+rule step99_oexp_vs_nb:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fn_modstats=fn_phys_analysis_modstats,
+         fn_sigstats=fn_sigstats
+    output:
+          fol_plots=directory(fol_figures / 'marker_vs_nb')
+
+    params:
+          fol_figures=fol_figures
+    conda: 'envs/spherpro_env.yml'
+    threads: 2
+    resources:
+             mem='16G',
+             time='60'
+    log:
+       notebook= 'logs/7_99_overexpression_vs_nb.py.ipynb'
+    notebook:
+            'notebooks/7_99_overexpression_vs_nb.py.ipynb'
 # Varia
 
 fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
