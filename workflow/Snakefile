@@ -429,7 +429,9 @@ rule ome2full:
     output:
         directory(folder_sphere_full)
     resources:
-        mem_mb=16000
+        mem_mb=32000,
+        time=180
+
     container: container_imctools
     script:
         'scripts/imc2analysis.py'
