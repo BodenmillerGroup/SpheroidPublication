@@ -72,6 +72,9 @@ fol_manual_qc.mkdir(parents=True, exist_ok=True)
 # Analysis output
 fol_figures = fol_results / 'figures'
 fol_figures_oexp_de_results = fol_figures / 'oexp_de_res'
+fol_example_oexp = fol_figures / 'example_oexps'
+fol_marker_vs_nb = fol_figures / 'marker_vs_nb'
+fol_frac_oexp = fol_figures / 'frac_oexp'
 
 # Linear mixed effects modeling
 fol_lmm = fol_results /'lmm'
@@ -129,7 +132,8 @@ fn_sigstats=fol_results/'dat_issig.csv'
 
 # Target rules
 rule all:
-    input: fn_panel, fn_db, has_db_d2rim, has_db_id_overexpression, fol_figures_oexp_de_results
+    input: fn_panel, fn_db, has_db_d2rim, has_db_id_overexpression,
+         fol_figures_oexp_de_results, fol_marker_vs_nb, fol_figures_oexp_de_results
 
 rule get_panel:
     input: fn_panel_src
@@ -488,7 +492,7 @@ rule step99_oexp_vs_nb:
          fn_modstats=fn_phys_analysis_modstats,
          fn_sigstats=fn_sigstats
     output:
-          fol_plots=directory(fol_figures / 'marker_vs_nb')
+          fol_plots=directory(fol_marker_vs_nb)
 
     params:
           fol_figures=fol_figures
@@ -509,7 +513,7 @@ rule step99_example_imgs:
          fn_modstats=fn_phys_analysis_modstats,
          fn_sigstats=fn_sigstats
     output:
-          fol_plots=directory(fol_figures / 'example_oexps')
+          fol_plots=directory(fol_example_oexp)
 
     params:
           fol_figures=fol_figures
@@ -522,6 +526,26 @@ rule step99_example_imgs:
        notebook= 'logs/99_example_imgs.py.ipynb'
     notebook:
             'notebooks/99_example_imgs.py.ipynb'
+
+rule step99_frac_oexp:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         has_oexp=has_db_oexp_classes
+    output:
+          fol_plots=directory(fol_frac_oexp)
+
+    params:
+          fol_figures=fol_figures
+    conda: 'envs/spherpro_env.yml'
+    threads: 2
+    resources:
+             mem='16G',
+             time='60'
+    log:
+       notebook= 'logs/99_frac_oexp.py.ipynb'
+    notebook:
+            'notebooks/99_frac_oexp.py.ipynb'
 # Varia
 
 fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
