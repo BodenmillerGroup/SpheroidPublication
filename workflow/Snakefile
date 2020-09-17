@@ -501,6 +501,27 @@ rule step99_oexp_vs_nb:
        notebook= 'logs/7_99_overexpression_vs_nb.py.ipynb'
     notebook:
             'notebooks/7_99_overexpression_vs_nb.py.ipynb'
+
+rule step99_example_imgs:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fn_modstats=fn_phys_analysis_modstats,
+         fn_sigstats=fn_sigstats
+    output:
+          fol_plots=directory(fol_figures / 'example_oexps')
+
+    params:
+          fol_figures=fol_figures
+    conda: 'envs/spherpro_env.yml'
+    threads: 2
+    resources:
+             mem='16G',
+             time='60'
+    log:
+       notebook= 'logs/99_example_imgs.py.ipynb'
+    notebook:
+            'notebooks/99_example_imgs.py.ipynb'
 # Varia
 
 fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
