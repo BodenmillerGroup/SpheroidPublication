@@ -34,10 +34,10 @@ def define_cellprofiler_rules(configs_cp, folder_base,
         - write a rule to move the files from the output folder
           to the target output location. (1 rule per output/batchname)
 
-    :param configs_cp: a dictionary containing the configuration
+    :param configs_a dictionary containing the configuration
         for the cellprofiler runs
     :param folder_base: the base folder for output
-    :param container_cp: singularity container_ilastik for cellprofiler
+    :param container_singularity container_ilastik for cellprofiler
     :return: a set of rules to run cellprofiler pipelines
     """
 
@@ -91,6 +91,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
         """
         # resources:
         rule:
+            message: f'Generate a file list of input files for CellProfiler run "{batchname}"'
             input:  *cur_config['input_files']
             output: expand(str(pat_fn_filelist), batchname=batchname)
             params: *cur_config['input_files']
@@ -115,7 +116,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
                     input:
                          fol_combined=expand(str(pat_fol_batch_combined), batchname=batchname)
                     output: outval
-                    message: 'Define CP pipeline output files'
+                    message: f'Move output folder {outval} for CellProfiler run "{batchname}"'
                     threads: 1
                     params:
                           subfol = subfol
@@ -127,7 +128,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
                         input:
                              fol_combined=expand(str(pat_fol_batch_combined), batchname=batchname)
                         output: outfile
-                        message: 'Move CP pipeline output files'
+                        message: f'Move output file {outval} for CellProfiler run "{batchname}"'
                         threads: 1
                         params:
                               subfol = subfol
@@ -137,6 +138,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
 
     # Define Cellprofiler specific rules
     rule cp_get_plugins:
+        message: 'Prepare plugins folder for CellProfiler run "{wildcards.batchname}"'
         input: fkt_fol_plugins
         output: directory(pat_fol_plugins)
         shell:
@@ -144,6 +146,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
              'cp -R {input}/* {output}'
 
     rule cp_create_batch_data:
+        message: 'Prepare batch file from file list for CellProfiler run "{wildcards.batchname}"'
         input:
             filelist=pat_fn_filelist,
             pipeline=fkt_fn_pipeline,
@@ -160,6 +163,7 @@ def define_cellprofiler_rules(configs_cp, folder_base,
             "-p {input.pipeline} -o {params.outfolder} || true"
 
     rule cp_run_batch:
+        message: 'Run image sets {wildcards.start} to {wildcards.end} for CellProfiler run "{wildcards.batchname}"'
         input:
              batchfile=pat_fn_batchfile,
              plugins=pat_fol_plugins
@@ -187,13 +191,14 @@ def define_cellprofiler_rules(configs_cp, folder_base,
     checkpoint cp_get_groups:
         input: pat_fn_batchfile,
         output: pat_fn_batchgroups
-        message: 'Creates group file based on batch'
+        message: 'Prepare image group file for CellProfiler run "{wildcards.batchname}"'
         container: container_cp
         shell:
             "cellprofiler -c --print-groups={input[0]}  > {output[0]} || true"
 
 
     checkpoint cp_combine_batch_output:
+        message: 'Combine output for CellProfiler run "{wildcards.batchname}"'
         input: fkt_fols_run  # function that retrieves all groups for a batch
         output: temporary(directory(pat_fol_batch_combined))
         params:
