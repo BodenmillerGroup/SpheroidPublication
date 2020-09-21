@@ -51,6 +51,7 @@ fol_figures = fol_results / 'figures'
 fol_figures_marker_relationship = fol_figures / 'marker_relationship'
 fol_figures_cellline_heatmap = fol_figures / 'cellline_heatmap'
 fol_figures_optimal_ord = fol_figures / 'optimal_ord'
+fol_overview_stats = fol_figures /'overview_stats'
 
 # Preprocessing indicators
 fn_db_preprocessed = fol_db / 'dbpreprocess.done'
@@ -490,7 +491,27 @@ rule umap_analysis:
        notebook='logs/99_umap_analysis.py.ipynb'
     notebook:
             'notebooks/99_umap_analysis.py.ipynb'
-    
+
+rule step99_overview_statistics:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         has_d2rim=fn_db_d2rim
+    output:
+          fol_plots=directory(fol_overview_stats)
+
+    params:
+          fol_figures=fol_figures
+    conda: 'envs/spherpro_env.yml'
+    threads: 2
+    resources:
+             mem='16G',
+             time='60'
+    log:
+       notebook= 'logs/99_overview_statistics.py.ipynb'
+    notebook:
+            'notebooks/99_overview_statistics.py.ipynb'
+
 rule apoptosis_imgs:
     input:
          fn_config=fn_sp_config,
@@ -501,7 +522,7 @@ rule apoptosis_imgs:
          fol_out=fol_figures / 'apoptosis_imgs'
     conda: 'envs/spherpro_env.yml'
     container: container_base
-    threads: 8_
+    threads: 8
     resources:
              mem='32G',
              time='60'
