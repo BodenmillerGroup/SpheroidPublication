@@ -1,11 +1,13 @@
+#####################################################################
+#### General setup of the environment
 import pathlib
 import shutil
-import os
 import subprocess as subp
 import pandas as pd
 
 from snakemake.utils import validate
 
+# Global conda container
 container_base = 'docker://votti/miniconda3mamba:v0.4.2'
 
 # Define dependency on preprocessing workflows
@@ -20,10 +22,6 @@ subworkflow bf_preproc:
            "../../bf_preproc"
     snakefile:
              "../../bf_preproc/workflow/Snakefile"
-
-# Read Configuration
-configfile: 'config/config_phys_analysis.yml'
-validate(config, "schemas/config_phys_analysis.schema.yml")
 
 # Extract variables from configuration
 ## Input/output
@@ -48,10 +46,13 @@ fol_manual_qc.mkdir(parents=True, exist_ok=True)
 
 # Analysis output
 fol_figures = fol_results / 'figures'
+fol_figures.mkdir(exist_ok=True)
 fol_figures_marker_relationship = fol_figures / 'marker_relationship'
 fol_figures_cellline_heatmap = fol_figures / 'cellline_heatmap'
 fol_figures_optimal_ord = fol_figures / 'optimal_ord'
-fol_overview_stats = fol_figures /'overview_stats'
+fol_overview_stats = fol_figures / 'overview_stats'
+fol_figures_d2rim = fol_figures / 'd2rim'
+fol_figures_apoptosis = fol_figures / 'apoptosis_imgs'
 
 # Preprocessing indicators
 fn_db_preprocessed = fol_db / 'dbpreprocess.done'
@@ -86,7 +87,8 @@ cp_measurements_output_srt = [ancient(phys_preproc(str(fn))) for fn in cp_measur
 # Target rules
 rule all:
     input: fn_panel, fn_db, fn_db_d2rim, fol_figures_marker_relationship,
-        fol_figures_optimal_ord, fol_figures_cellline_heatmap
+        fol_figures_optimal_ord, fol_figures_cellline_heatmap,
+        fol_figures_d2rim, fol_figures_apoptosis
 
 rule get_panel:
     input: fn_panel_src
@@ -512,24 +514,43 @@ rule step99_overview_statistics:
     notebook:
             'notebooks/99_overview_statistics.py.ipynb'
 
-rule apoptosis_imgs:
+rule step99_apoptosis_imgs:
     input:
          fn_config=fn_sp_config,
          fn_db=fn_db,
          is_cc=fn_db_cellclass,
          fn_panel_ord = fol_resources / 'pannel_ordered.csv'
     output:
-         fol_out=fol_figures / 'apoptosis_imgs'
+         fol_out=fol_figures_apoptosis
     conda: 'envs/spherpro_env.yml'
     container: container_base
     threads: 8
     resources:
-             mem='32G',
+             mem='8G',
              time='60'
     log:
        notebook='logs/99_apoptosis_imgs.py.ipynb'
     notebook:
             'notebooks/99_apoptosis_imgs.py.ipynb'
+
+rule step99_d2rim_imgs:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         has_d2rim=fn_db_d2rim
+    output:
+          fol_out=directory(fol_figures_d2rim)
+    conda: 'envs/spherpro_env.yml'
+    container: container_base
+    threads: 8
+    resources:
+             mem='8G',
+             time='60'
+    log:
+       notebook='logs/99_dist2rim_plots.py.ipynb'
+    notebook:
+            'notebooks/99_dist2drim_plots.py.ipynb'
+
 # Varia
 fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
 fol_cluster = pathlib.Path('vizano@cluster.s3it.uzh.ch:/scratch/vizano/SpheroidPublication')
