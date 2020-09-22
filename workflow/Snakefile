@@ -53,6 +53,7 @@ fol_figures_optimal_ord = fol_figures / 'optimal_ord'
 fol_overview_stats = fol_figures / 'overview_stats'
 fol_figures_d2rim = fol_figures / 'd2rim'
 fol_figures_apoptosis = fol_figures / 'apoptosis_imgs'
+fol_figures_umap = fol_figures / 'umap_analysis'
 
 # Preprocessing indicators
 fn_db_preprocessed = fol_db / 'dbpreprocess.done'
@@ -88,7 +89,7 @@ cp_measurements_output_srt = [ancient(phys_preproc(str(fn))) for fn in cp_measur
 rule all:
     input: fn_panel, fn_db, fn_db_d2rim, fol_figures_marker_relationship,
         fol_figures_optimal_ord, fol_figures_cellline_heatmap,
-        fol_figures_d2rim, fol_figures_apoptosis
+        fol_figures_d2rim, fol_figures_apoptosis, fol_figures_umap
 
 rule get_panel:
     input: fn_panel_src
@@ -477,12 +478,14 @@ rule site_overviews:
     notebook:
             'notebooks/99_site_overviews.py.ipynb'
 
-rule umap_analysis:
+rule step99_umap_analysis:
     input:
          fn_config=fn_sp_config,
          fn_db=fn_db,
          is_cc=fn_db_cellclass,
-         fn_panel_ord = fol_resources / 'pannel_ordered.csv',
+         fn_panel_ord = fol_resources / 'pannel_ordered.csv'
+    output:
+        fol_plots=directory(fol_figures_umap)
     conda: 'envs/spherpro_env.yml'
     container: container_base
     threads: 8
@@ -521,7 +524,7 @@ rule step99_apoptosis_imgs:
          is_cc=fn_db_cellclass,
          fn_panel_ord = fol_resources / 'pannel_ordered.csv'
     output:
-         fol_out=fol_figures_apoptosis
+         fol_out=directory(fol_figures_apoptosis)
     conda: 'envs/spherpro_env.yml'
     container: container_base
     threads: 8
