@@ -2,24 +2,15 @@ name: spheroid_env
 channels:
   - conda-forge
   - bioconda
-  - anaconda
-  - phlya
-  - r
   - defaults
 dependencies:
   - anndata
-  - ipython
   - ipykernel
   - ipywidgets
-  - jinja2
   - jupyter
-  - libtiff
-  - odo
   - pandas
   - pip
-  - psycopg2
   - setuptools
-  - sqlite
   - numpy
   - pandas
   - scipy
@@ -29,13 +20,10 @@ dependencies:
   - leidenalg
   - jupytext
   - imctools=1.0.7
+  - matplotlib-scalebar
+  - plotnine
+  - simplegeneric
   - pip:
-    - sqlalchemy-utils
-    - simplegeneric
-    - matplotlib-scalebar
-    - plotnine
     - scikit-misc
-    - git+https://github.com/blaze/odo.git
-    - git+https://github.com/BodenmillerGroup/pycytools.git
+    - git+https://github.com/BodenmillerGroup/pycytools.git@master
     - git+https://github.com/BodenmillerGroup/spherpro.git@develop
-    - '../../'
