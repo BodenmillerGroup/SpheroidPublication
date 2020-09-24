@@ -716,30 +716,3 @@ rule clean:
     shell:
         "rm -R {folder_base}"
 
-### Data retrieval
-rule retrieve_zenodo:
-    output:
-         touch(pat_zenodo_rep)
-    conda:
-         'envs/env_zenodo.yml'
-    params:
-        fol_out = str(folder_resources / '{zenodo_folder}')
-    shell:
-         '''cd {params.fol_out}
-         python -m zenodo_get  --sandbox {wildcards.zenodo_id}'''
-
-#rule retrieve_zip:
-#    output: pat_fn_zip
-#    params:
-#          fn = get_zip_fn
-#    shell:
-#         'rsync -rt {params.fn} {output[0]}'
-
-#rule alignment_retrieve_slidescans:
-#    input:
-#         AlignmentConf.fol_slide_source
-#    output:
-#          directory(AlignmentConf.fol_slide)
-#    shell:
-#         'rsync -rt {input[0]}/ {output[0]}'
-
