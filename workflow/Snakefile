@@ -1,10 +1,7 @@
 import pathlib
 import shutil
-import os
 import subprocess as subp
 import pandas as pd
-
-from snakemake.utils import validate
 
 localrules: get_cpout, get_bf_qc, get_bf_quantification
 
@@ -75,6 +72,7 @@ fol_figures_oexp_de_results = fol_figures / 'oexp_de_res'
 fol_example_oexp = fol_figures / 'example_oexps'
 fol_marker_vs_nb = fol_figures / 'marker_vs_nb'
 fol_frac_oexp = fol_figures / 'frac_oexp'
+fol_overview_stats = fol_figures /'overview_stats'
 
 # Linear mixed effects modeling
 fol_lmm = fol_results /'lmm'
@@ -546,6 +544,27 @@ rule step99_frac_oexp:
        notebook= 'logs/99_frac_oexp.py.ipynb'
     notebook:
             'notebooks/99_frac_oexp.py.ipynb'
+
+
+rule step99_overview_statistics:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         has_d2rim=has_db_d2rim
+    output:
+          fol_plots=directory(fol_overview_stats)
+
+    params:
+          fol_figures=fol_figures
+    conda: 'envs/spherpro_env.yml'
+    threads: 2
+    resources:
+             mem='16G',
+             time='60'
+    log:
+       notebook= 'logs/99_overview_statistics.py.ipynb'
+    notebook:
+            'notebooks/99_overview_statistics.py.ipynb'
 # Varia
 
 fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
