@@ -211,7 +211,7 @@ checkpoint define_input_files:
         dat_input.to_csv(fn_dat_input, index=False)
 
 rule retrieve_zenodo:
-    message: 'Download files from Zenodo.'
+    message: 'Download files "{wildcards.zenodo_folder}" from Zenodo.'
     output:
           touch(pat_zenodo_rep)
     conda:
@@ -231,7 +231,7 @@ checkpoint all_zenodo_bfzips:
     output: touch(all_has_zenodo_bfzip_repositories)
 
 rule unzip_bf_folder:
-    message: 'Unzip input zip files'
+    message: 'Unzip input zip files "{wildcards.zipfol}"'
     input:
          fn_zip=pat_fn_zip
     output: touch(pat_fn_unzip_done)
