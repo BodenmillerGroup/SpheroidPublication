@@ -4,342 +4,409 @@ import pathlib
 from scripts.utils_alignment import variables as VarAlign
 from snakemake.utils import validate
 
-# Cellprofiler/Ilastik rules
-include: 'rules/cellprofiler.smk'
-include: 'rules/ilastik.smk'
 
-container: 'docker://votti/miniconda3mamba:mamba0.3.0'
-container_imctools = 'docker://votti/imctools:v1.0.7'
+# Cellprofiler/Ilastik rules
+include: "rules/cellprofiler.smk"
+include: "rules/ilastik.smk"
+
+
+container: "docker://votti/miniconda3mamba:mamba0.3.0"
+
+
+container_imctools = "docker://votti/imctools:v1.0.7"
+
 
 # Read Configuration
-configfile: 'config/config_oexp.yml'
+configfile: "config/config_oexp.yml"
+
+
 validate(config, "schemas/config_phys.schema.yml")
 
 # Extract variables from configuration
 ## Input/output
 # Repositories with IMC raw data
-input_zenodo_imc_repositories = config['input_zenodo_imc_repositories']
+input_zenodo_imc_repositories = config["input_zenodo_imc_repositories"]
 # Repository with other data, such as compensation related files
-input_zenodo_varia_repositories = config['input_zenodo_varia_repositories']
+input_zenodo_varia_repositories = config["input_zenodo_varia_repositories"]
 # Repository with slidescan data
-input_zenodo_slidescan_repositories = config['input_zenodo_slidescan_repositories']
+input_zenodo_slidescan_repositories = config["input_zenodo_slidescan_repositories"]
 
 
 ## Setup of variables related to the 'panel' file that defines what metal
 # channels should be used for the different analysis steps
-csv_panel = config['csv_panel']
-csv_panel_metal = config['csv_panel_metal']
-csv_panel_ilastik = config['csv_panel_ilastik']
-csv_panel_full = config['csv_panel_full']
-csv_panel_sphereseg = config['csv_panel_sphereseg']
+csv_panel = config["csv_panel"]
+csv_panel_metal = config["csv_panel_metal"]
+csv_panel_ilastik = config["csv_panel_ilastik"]
+csv_panel_full = config["csv_panel_full"]
+csv_panel_sphereseg = config["csv_panel_sphereseg"]
 
 ## Minimum image size to be analysed
 img_minsize = 50
 
 ## Ilastik related configuration
-ilastik_container = config['ilastik_container']
-ilastik_threads = config['ilastik_threads']
-ilastik_mem_mb = config['ilastik_mem_mb']
+ilastik_container = config["ilastik_container"]
+ilastik_threads = config["ilastik_threads"]
+ilastik_mem_mb = config["ilastik_mem_mb"]
 
 # Cellprofiler related configuration
-cellprofiler_container = config['cellprofiler_container']
-cp_plugins = config['cellprofiler_plugins']
+cellprofiler_container = config["cellprofiler_container"]
+cp_plugins = config["cellprofiler_plugins"]
 
 # Compensation related configuration
-fns_compensation_source = config['compensation']['fns_compensation']
-fns_compensation_ss_panel = config['compensation']['fn_ss_panel']
+fns_compensation_source = config["compensation"]["fns_compensation"]
+fns_compensation_ss_panel = config["compensation"]["fn_ss_panel"]
 
 # Define hardcoded variables
 ## Define basic folder structure
-folder_base = pathlib.Path('results')
-folder_resources = pathlib.Path('resources')
-folder_zip = folder_resources / 'zips'
+folder_base = pathlib.Path("results")
+folder_resources = pathlib.Path("resources")
+folder_zip = folder_resources / "zips"
 folder_zip.mkdir(exist_ok=True)
 
-folder_slidescan = folder_resources / 'slidescan'
+folder_slidescan = folder_resources / "slidescan"
 folder_slidescan.mkdir(exist_ok=True)
 
-folder_varia = folder_resources / 'varia'
+folder_varia = folder_resources / "varia"
 folder_varia.mkdir(exist_ok=True)
 
-folder_ome = folder_base / 'ome'
+folder_ome = folder_base / "ome"
 folder_ome.mkdir(parents=True, exist_ok=True)
 
-folder_analysis = folder_base / 'tiffs'
-folder_sphere_full = folder_analysis / 'full'
-folder_sphere_ilastik = folder_analysis / 'ilastik'
-folder_sphere_align = folder_analysis / 'align'
-folder_sphereseg_ilastik = folder_analysis / 'sphere_ilastik'
-folder_sphereseg_ilastik_h5 = folder_analysis / 'sphere_ilastik_h5'
-folder_sphereseg_ilastik_prob = folder_analysis / 'sphere_ilastik_prob'
-folder_sphereseg_mask = folder_analysis / 'sphere_mask'
+folder_analysis = folder_base / "tiffs"
+folder_sphere_full = folder_analysis / "full"
+folder_sphere_ilastik = folder_analysis / "ilastik"
+folder_sphere_align = folder_analysis / "align"
+folder_sphereseg_ilastik = folder_analysis / "sphere_ilastik"
+folder_sphereseg_ilastik_h5 = folder_analysis / "sphere_ilastik_h5"
+folder_sphereseg_ilastik_prob = folder_analysis / "sphere_ilastik_prob"
+folder_sphereseg_mask = folder_analysis / "sphere_mask"
 
-folder_spherecrop = folder_base / 'sphere_crops'
-folder_spherecrop_tiff = folder_spherecrop / 'tiffs'
-folder_spherecrop_ilastik_h5 = folder_spherecrop / 'cell_ilastik_h5'
-folder_spherecrop_ilastik_prob = folder_spherecrop / 'cell_ilastik_prob'
-folder_spherecrop_mask = folder_spherecrop / 'cell_ilastik_mask'
-folder_spherecrop_ifstack = folder_spherecrop / 'if_stack'
-folder_spherecrop_aligned = folder_spherecrop / 'aligned'
-folder_spherecrop_dapiqc = folder_spherecrop / 'dapiqc_prob'
-folder_spherecrop_gfp = folder_spherecrop / 'gfp_stacks'
-folder_spherecrop_probpos = folder_spherecrop / 'gfp_prob'
-folder_spherecrop_probposgfpif = folder_spherecrop / 'gfpif_prob'
+folder_spherecrop = folder_base / "sphere_crops"
+folder_spherecrop_tiff = folder_spherecrop / "tiffs"
+folder_spherecrop_ilastik_h5 = folder_spherecrop / "cell_ilastik_h5"
+folder_spherecrop_ilastik_prob = folder_spherecrop / "cell_ilastik_prob"
+folder_spherecrop_mask = folder_spherecrop / "cell_ilastik_mask"
+folder_spherecrop_ifstack = folder_spherecrop / "if_stack"
+folder_spherecrop_aligned = folder_spherecrop / "aligned"
+folder_spherecrop_dapiqc = folder_spherecrop / "dapiqc_prob"
+folder_spherecrop_gfp = folder_spherecrop / "gfp_stacks"
+folder_spherecrop_probpos = folder_spherecrop / "gfp_prob"
+folder_spherecrop_probposgfpif = folder_spherecrop / "gfpif_prob"
+
 
 def fkt_fns_dapi(wildcards):
     "Function to get all dapi images as input for the dapi qc"
     checkpoints.alignment_align_imgs.get()
-    return [str(fn.resolve()) for fn in folder_spherecrop_aligned.glob('*_if_fcrop_c1_s2.tiff')]
+    return [
+        str(fn.resolve())
+        for fn in folder_spherecrop_aligned.glob("*_if_fcrop_c1_s2.tiff")
+    ]
+
 
 def fkt_fns_gfp2x(wildcards):
     "Function to get all dapi images as input for the dapi qc"
     checkpoints.alignment_align_imgs.get()
-    return [str(fn.resolve()) for fn in folder_spherecrop_aligned.glob('*_if_fcrop_c0_s2.tiff')]
+    return [
+        str(fn.resolve())
+        for fn in folder_spherecrop_aligned.glob("*_if_fcrop_c0_s2.tiff")
+    ]
+
 
 # Define Zenodo source data structure
-pat_zenodo_rep = str(folder_resources / '{zenodo_folder}_zenodo_{zenodo_id}.done')
-pat_has_zenodo_imc_repositories = str(folder_resources / f'{folder_zip.name}_zenodo_{{zenodo_id}}.done')
-all_has_zenodo_imc_repositories = folder_zip / 'zenodo.done'
-fns_has_zenodo_imc_repositories = expand(str(pat_has_zenodo_imc_repositories), zenodo_id=input_zenodo_imc_repositories)
+pat_zenodo_rep = str(folder_resources / "{zenodo_folder}_zenodo_{zenodo_id}.done")
+pat_has_zenodo_imc_repositories = str(
+    folder_resources / f"{folder_zip.name}_zenodo_{{zenodo_id}}.done"
+)
+all_has_zenodo_imc_repositories = folder_zip / "zenodo.done"
+fns_has_zenodo_imc_repositories = expand(
+    str(pat_has_zenodo_imc_repositories), zenodo_id=input_zenodo_imc_repositories
+)
 
-pat_has_zenodo_slidescan_repositories = str(folder_resources / f'{folder_slidescan.name}_zenodo_{{zenodo_id}}.done')
-all_has_zenodo_slidescan_repositories = folder_slidescan / 'zenodo.done'
-fns_has_zenodo_slidescan_repositories = expand(str(pat_has_zenodo_slidescan_repositories), zenodo_id=input_zenodo_slidescan_repositories)
+pat_has_zenodo_slidescan_repositories = str(
+    folder_resources / f"{folder_slidescan.name}_zenodo_{{zenodo_id}}.done"
+)
+all_has_zenodo_slidescan_repositories = folder_slidescan / "zenodo.done"
+fns_has_zenodo_slidescan_repositories = expand(
+    str(pat_has_zenodo_slidescan_repositories),
+    zenodo_id=input_zenodo_slidescan_repositories,
+)
 
-pat_has_zenodo_varia_repositories = str(folder_resources / f'{folder_varia.name}_zenodo_{{zenodo_id}}.done')
-all_has_zenodo_varia_repositories = folder_varia / 'zenodo.done'
-fns_has_zenodo_varia_repositories = expand(str(pat_has_zenodo_varia_repositories), zenodo_id=input_zenodo_varia_repositories)
+pat_has_zenodo_varia_repositories = str(
+    folder_resources / f"{folder_varia.name}_zenodo_{{zenodo_id}}.done"
+)
+all_has_zenodo_varia_repositories = folder_varia / "zenodo.done"
+fns_has_zenodo_varia_repositories = expand(
+    str(pat_has_zenodo_varia_repositories), zenodo_id=input_zenodo_varia_repositories
+)
 
 ## Structure for compensation data
 fol_compensation_data = folder_varia
-pat_compensation = str(fol_compensation_data / '{fn_comp}')
+pat_compensation = str(fol_compensation_data / "{fn_comp}")
 fns_compensation = [str(fol_compensation_data / fn) for fn in fns_compensation_source]
-re_fn_channel_csv = '.*_full\.csv'
+re_fn_channel_csv = ".*_full\.csv"
 
 # Spillover output files
-fn_sm_mat = folder_base / 'sm.csv'
-folder_spherecrop_sms = folder_spherecrop / 'spillover_mats'
+fn_sm_mat = folder_base / "sm.csv"
+folder_spherecrop_sms = folder_spherecrop / "spillover_mats"
 
 ## Define Output files
-folder_cp = folder_base / 'cpout'
-fn_cpout_image = folder_cp / 'Image.csv'
-fn_cpout_cell = folder_cp / 'cell.csv'
-fn_cpout_experiment = folder_cp / 'Experiment.csv'
-fn_cpout_cyto = folder_cp / 'cyto.csv'
-fn_cpout_nuclei = folder_cp / 'nuclei.csv'
-fn_cpout_nucleiexp = folder_cp / 'nucleiexp.csv'
-fn_cpout_objectrel = folder_cp / 'Object relationships.csv'
-folder_cpout_imgs = folder_cp / 'imgs'
-folder_cpout_masks = folder_cp /'masks'
+folder_cp = folder_base / "cpout"
+fn_cpout_image = folder_cp / "Image.csv"
+fn_cpout_cell = folder_cp / "cell.csv"
+fn_cpout_experiment = folder_cp / "Experiment.csv"
+fn_cpout_cyto = folder_cp / "cyto.csv"
+fn_cpout_nuclei = folder_cp / "nuclei.csv"
+fn_cpout_nucleiexp = folder_cp / "nucleiexp.csv"
+fn_cpout_objectrel = folder_cp / "Object relationships.csv"
+folder_cpout_imgs = folder_cp / "imgs"
+folder_cpout_masks = folder_cp / "masks"
 
 
 # Produce a list of all cellprofiler output files
-cp_measurements_output = [fn_cpout_image, fn_cpout_cell, fn_cpout_experiment, fn_cpout_objectrel,
-                          fn_cpout_cyto, fn_cpout_nucleiexp, fn_cpout_nuclei]
+cp_measurements_output = [
+    fn_cpout_image,
+    fn_cpout_cell,
+    fn_cpout_experiment,
+    fn_cpout_objectrel,
+    fn_cpout_cyto,
+    fn_cpout_nucleiexp,
+    fn_cpout_nuclei,
+]
 
 
 ## Define suffixes
-suffix_full = '_full'
-suffix_ilastik = '_ilastik'
-suffix_scale = '_s2'
-suffix_mask = '_mask'
-suffix_probablities = '_Probabilities'
-suffix_tiff = '.tiff'
-suffix_csv = '.csv'
-suffix_h5 = '.h5'
-suffix_done = '.done'
-suffix_crop = '_{crop, x[0-9]+_y[0-9]+_w[0-9]+_h[0-9]+}'
-suffix_sphereseg = '_sphereseg'
+suffix_full = "_full"
+suffix_ilastik = "_ilastik"
+suffix_scale = "_s2"
+suffix_mask = "_mask"
+suffix_probablities = "_Probabilities"
+suffix_tiff = ".tiff"
+suffix_csv = ".csv"
+suffix_h5 = ".h5"
+suffix_done = ".done"
+suffix_crop = "_{crop, x[0-9]+_y[0-9]+_w[0-9]+_h[0-9]+}"
+suffix_sphereseg = "_sphereseg"
 
 ## Define derived file patterns
-pat_fn_zip = str(folder_zip / ('{zipfol}.zip'))
-pat_fn_mcdparse_done = str(folder_ome / ('{zipfol}' + suffix_done))
-fn_all_mcd_converted = folder_base / 'all_mcd_converted.done'
+pat_fn_zip = str(folder_zip / ("{zipfol}.zip"))
+pat_fn_mcdparse_done = str(folder_ome / ("{zipfol}" + suffix_done))
+fn_all_mcd_converted = folder_base / "all_mcd_converted.done"
+
 
 # Catch All
 rule all:
-    message: 'Listing output from this pipeline'
-    input: folder_spherecrop_mask, folder_spherecrop_aligned, folder_spherecrop_dapiqc, cp_measurements_output, folder_cpout_masks, folder_cpout_imgs
+    message:
+        "Listing output from this pipeline"
+    input:
+        folder_spherecrop_mask,
+        folder_spherecrop_aligned,
+        folder_spherecrop_dapiqc,
+        cp_measurements_output,
+        folder_cpout_masks,
+        folder_cpout_imgs,
+
 
 # Download from zenodo
 checkpoint all_zenodo_imc:
-    message: 'Assert that all IMC files were downloaded form Zenodo'
-    input: fns_has_zenodo_imc_repositories
-    output: touch(all_has_zenodo_imc_repositories)
+    message:
+        "Assert that all IMC files were downloaded form Zenodo"
+    input:
+        fns_has_zenodo_imc_repositories,
+    output:
+        touch(all_has_zenodo_imc_repositories),
+
 
 checkpoint all_zenodo_slidescan:
-    message: 'Assert that all Slidescan images were downloaded form Zenodo'
-    input: fns_has_zenodo_slidescan_repositories
-    output: touch(all_has_zenodo_slidescan_repositories)
+    message:
+        "Assert that all Slidescan images were downloaded form Zenodo"
+    input:
+        fns_has_zenodo_slidescan_repositories,
+    output:
+        touch(all_has_zenodo_slidescan_repositories),
+
 
 checkpoint all_zenodo_varia:
-    message: 'Assert that all Varia data is downloaded form Zenodo'
-    input: fns_has_zenodo_varia_repositories
-    output: touch(all_has_zenodo_varia_repositories)
+    message:
+        "Assert that all Varia data is downloaded form Zenodo"
+    input:
+        fns_has_zenodo_varia_repositories,
+    output:
+        touch(all_has_zenodo_varia_repositories),
+
 
 # Check files downloaded from zenodo
 def fns_zenodo_imc(wildcards):
-    '''
+    """
     Generates list of IMC filenames form Zenodo
-    '''
+    """
     checkpoints.all_zenodo_imc.get()
-    zipfols, = glob_wildcards(pat_fn_zip)
+    (zipfols,) = glob_wildcards(pat_fn_zip)
     return expand(pat_fn_zip, zipfol=zipfols)
 
+
 def fns_all_mcd_done(wildcards):
-    '''
+    """
     Returns a 'done' file for each mcd, indicating that this file
     has been converted only once it has been checked that all
     IMC files have been downloaded.
-    '''
+    """
     checkpoints.all_zenodo_imc.get()
-    zipfols, = glob_wildcards(pat_fn_zip)
+    (zipfols,) = glob_wildcards(pat_fn_zip)
     return expand(pat_fn_mcdparse_done, zipfol=zipfols)
 
+
 def fol_zenodo_slidescan(wildcards):
-    '''
+    """
     Returns the slidescan folder only once it has been checked that
     all slidescans have been downloaded.
-    '''
+    """
     checkpoints.all_zenodo_slidescan.get()
     return folder_slidescan
 
+
 def fns_zenodo_comp(wildcards):
-    '''
+    """
     Returns a list of compensation files only once it has been checked
     that all compensation files have been downloaded from Zenodo.
-    '''
+    """
     checkpoints.all_zenodo_varia.get()
     return fns_compensation
+
 
 # Configuration for cellprofiler pipeline steps
 # (Please look at rules/cellprofiler.smk for the documentation of this structure)
 config_dict_cp = {
-    'prepare_sphereseg': {
-        'message':
-            '''
+    "prepare_sphereseg": {
+        "message": """
             Prepare image stacks for sphere identification Ilastik
-            ''',
-        'run_size': 20,
-        'plugins': cp_plugins,
-        'pipeline': 'resources/cp_pipelines/1_prepare_spheresegilastik.cppipe',
-        'input_files': [folder_sphereseg_ilastik],
-        'output_patterns': {'sphereseg': directory(folder_sphereseg_ilastik_h5),
-                            'align': directory(folder_sphere_align)},
+            """,
+        "run_size": 20,
+        "plugins": cp_plugins,
+        "pipeline": "resources/cp_pipelines/1_prepare_spheresegilastik.cppipe",
+        "input_files": [folder_sphereseg_ilastik],
+        "output_patterns": {
+            "sphereseg": directory(folder_sphereseg_ilastik_h5),
+            "align": directory(folder_sphere_align),
+        },
     }
 }
 
 config_dict_ilastik = {
-    'spheres':
-        {'project': 'resources/classifiers/sphere_segmentation.ilp',
-         'message':
-            '''
+    "spheres": {
+        "project": "resources/classifiers/sphere_segmentation.ilp",
+        "message": """
             Run a pixel classifier that identifies:
                 sphere border: border pixels,
                 sphere center: sphere center pixels
                 background: background pixels
             The resulting probability maps allow to identify & unclump spheres.
-            ''',
-         'run_size': 10,
-         'output_format': 'tiff',
-         'output_filename': f'{{nickname}}{suffix_probablities}{suffix_tiff}',
-         'export_source': 'Probabilities',
-         'export_dtype': 'uint16',
-         'pipeline_result_drange': '"(0.0, 1.0)"',
-         'input_files': folder_sphereseg_ilastik_h5,
-         'output_pattern': directory(folder_sphereseg_ilastik_prob),
-         }
+            """,
+        "run_size": 10,
+        "output_format": "tiff",
+        "output_filename": f"{{nickname}}{suffix_probablities}{suffix_tiff}",
+        "export_source": "Probabilities",
+        "export_dtype": "uint16",
+        "pipeline_result_drange": '"(0.0, 1.0)"',
+        "input_files": folder_sphereseg_ilastik_h5,
+        "output_pattern": directory(folder_sphereseg_ilastik_prob),
+    }
 }
 
-config_dict_cp.update({
-    'sphere_segment': {
-        'message':
-            '''
+config_dict_cp.update(
+    {
+        "sphere_segment": {
+            "message": """
             Identify spheres in probability masks.
-            ''',
-        'run_size': 10,
-        'plugins': cp_plugins,
-        'pipeline': 'resources/cp_pipelines/2_spheresegment.cppipe',
-        'input_files': [folder_sphereseg_ilastik_prob],
-        'output_patterns': {'.': directory(folder_sphereseg_mask)},
-    },
-    'sphere_crop': {
-        'message':
-            '''
+            """,
+            "run_size": 10,
+            "plugins": cp_plugins,
+            "pipeline": "resources/cp_pipelines/2_spheresegment.cppipe",
+            "input_files": [folder_sphereseg_ilastik_prob],
+            "output_patterns": {".": directory(folder_sphereseg_mask)},
+        },
+        "sphere_crop": {
+            "message": """
             Crop individual spheres from IMC images by using sphere masks.
-            ''',
-        'run_size': 20,
-        'plugins': cp_plugins,
-        'pipeline': 'resources/cp_pipelines/3_spherecrop.cppipe',
-        'input_files': [folder_sphereseg_mask, folder_sphere_full,
-                        folder_sphere_ilastik, folder_sphere_align,
-                        folder_sphereseg_ilastik_prob],
-        'output_patterns': {'.': directory(folder_spherecrop_tiff)},
-        'resources': {'mem_mb':'16G'}
-    },
-    'prepare_cellilastik': {
-        'message':
-            '''
+            """,
+            "run_size": 20,
+            "plugins": cp_plugins,
+            "pipeline": "resources/cp_pipelines/3_spherecrop.cppipe",
+            "input_files": [
+                folder_sphereseg_mask,
+                folder_sphere_full,
+                folder_sphere_ilastik,
+                folder_sphere_align,
+                folder_sphereseg_ilastik_prob,
+            ],
+            "output_patterns": {".": directory(folder_spherecrop_tiff)},
+            "resources": {"mem_mb": "16G"},
+        },
+        "prepare_cellilastik": {
+            "message": """
             Prepare stacks to train an ilastik classifier to identify cells.
             This rescales the images 2x and runs some outlier removal.
-            ''',
-        'run_size': 40,
-        'plugins': cp_plugins,
-        'pipeline': 'resources/cp_pipelines/4_prepareilastik_imcspheres.cppipe',
-        'input_files': [folder_spherecrop_tiff],
-        'output_patterns': {'.': directory(folder_spherecrop_ilastik_h5)},
+            """,
+            "run_size": 40,
+            "plugins": cp_plugins,
+            "pipeline": "resources/cp_pipelines/4_prepareilastik_imcspheres.cppipe",
+            "input_files": [folder_spherecrop_tiff],
+            "output_patterns": {".": directory(folder_spherecrop_ilastik_h5)},
+        },
     }
-})
+)
 
-config_dict_ilastik.update({
-    'cells':
-        {'project': 'resources/classifiers/cell_segmentation.ilp',
-         'message':
-            '''
+config_dict_ilastik.update(
+    {
+        "cells": {
+            "project": "resources/classifiers/cell_segmentation.ilp",
+            "message": """
             Apply a trained classifier to identify:
                 nucleus: Nuclear pixels
                 cell/cyto/membrane: Pixels that in the cytoplasma, membrane or
                     that separate adjacent nuclei.
                 background: background pixels
             The resulting probability masks are used to identify cells in the images.
-            ''',
-         'run_size': 40,
-         'output_format': 'tiff',
-         'output_filename': f'{{nickname}}{suffix_probablities}{suffix_tiff}',
-         'export_source': 'Probabilities',
-         'export_dtype': 'uint16',
-         'pipeline_result_drange': '"(0.0, 1.0)"',
-         'input_files': folder_spherecrop_ilastik_h5,
-         'output_pattern': directory(folder_spherecrop_ilastik_prob),
-         }
+            """,
+            "run_size": 40,
+            "output_format": "tiff",
+            "output_filename": f"{{nickname}}{suffix_probablities}{suffix_tiff}",
+            "export_source": "Probabilities",
+            "export_dtype": "uint16",
+            "pipeline_result_drange": '"(0.0, 1.0)"',
+            "input_files": folder_spherecrop_ilastik_h5,
+            "output_pattern": directory(folder_spherecrop_ilastik_prob),
+        }
+    }
+)
 
-})
-
-config_dict_cp.update({
-    'cell_segment': {
-        'message':
-            '''
+config_dict_cp.update(
+    {
+        "cell_segment": {
+            "message": """
             Identify nuclei and cell cuts in images based on probability masks.
             Generates masks for nuclei and cells.
-            ''',
-        'run_size': 10,
-        'plugins': cp_plugins,
-        'pipeline': 'resources/cp_pipelines/5_segment_imccells.cppipe',
-        'input_files': [folder_spherecrop_ilastik_prob],
-        'output_patterns': {'.': directory(folder_spherecrop_mask)},
+            """,
+            "run_size": 10,
+            "plugins": cp_plugins,
+            "pipeline": "resources/cp_pipelines/5_segment_imccells.cppipe",
+            "input_files": [folder_spherecrop_ilastik_prob],
+            "output_patterns": {".": directory(folder_spherecrop_mask)},
+        }
     }
-})
+)
 
 #####
 # Alignment: Next slidescans and IMC acquisitions are aligned:
 class AlignmentConf:
     # Filename for the csv that matches slides and acquisitions.
     # Required columns: {VarAlign.SAMPLEBLOCK, VarAlign.SLIDENUMBER, VarAlign.SLIDE} - see example csv
-    fn_slidematch = pathlib.Path('resources/20190506_bigstain_selection_final_if_imcalign_v1.csv')
+    fn_slidematch = pathlib.Path(
+        "resources/20190506_bigstain_selection_final_if_imcalign_v1.csv"
+    )
 
     # The folder containing the slide scans
     fol_slide = folder_slidescan
-    pat_fn_slidescan = str(fol_slide / '{slidescan}.czi')
+    pat_fn_slidescan = str(fol_slide / "{slidescan}.czi")
     fn_all_slides_dl = fns_has_zenodo_slidescan_repositories
 
     # The folder containing the IMC images converted to ometiff
@@ -355,364 +422,424 @@ class AlignmentConf:
     # The folder containing the spheroid crops
     fol_crop = folder_spherecrop_tiff
     # The regular expression to get metadata from an IMC filename
-    re_imcac = f'(?P<{VarAlign.DATE}>[0-9]+)_(?P<{VarAlign.SAMPLEBLOCK}>p[0-9]+)_slide(?P<{VarAlign.SLIDENUMBER}>[0-9]+)_ac.*'
+    re_imcac = f"(?P<{VarAlign.DATE}>[0-9]+)_(?P<{VarAlign.SAMPLEBLOCK}>p[0-9]+)_slide(?P<{VarAlign.SLIDENUMBER}>[0-9]+)_ac.*"
     # The regular expressions to get metadata from a cropped acquisition filename
-    re_crop = f'(?P<{VarAlign.SESSIONID}>.*)_s[-1-9]+_p(?P<{VarAlign.PANOID}>[0-9]+)_r(?P<{VarAlign.ACROIID}>[0-9]+)_a(?P<{VarAlign.ACID}>[0-9]+)_ac_spheresegalign_l(?P<{VarAlign.CROPID}>[0-9]+)_x(?P<{VarAlign.CROPX}>[0-9]+)_y(?P<{VarAlign.CROPY}>[0-9]+).*'
+    re_crop = f"(?P<{VarAlign.SESSIONID}>.*)_s[-1-9]+_p(?P<{VarAlign.PANOID}>[0-9]+)_r(?P<{VarAlign.ACROIID}>[0-9]+)_a(?P<{VarAlign.ACID}>[0-9]+)_ac_spheresegalign_l(?P<{VarAlign.CROPID}>[0-9]+)_x(?P<{VarAlign.CROPX}>[0-9]+)_y(?P<{VarAlign.CROPY}>[0-9]+).*"
 
     # A glob expression to identify the crop files
-    fn_crop_glob = '*_ac_spheresegalign_*.tiff'
+    fn_crop_glob = "*_ac_spheresegalign_*.tiff"
 
     ####### Generated output
     # The output base folder
     fol_out_base = folder_base
     # The output folder for (partially) aligned images
-    fol_out_imgs = fol_out_base / 'align_roughimgs'
+    fol_out_imgs = fol_out_base / "align_roughimgs"
     # The folder containing the derived metadata files
-    fol_out_meta = fol_out_base / 'align_meta'
+    fol_out_meta = fol_out_base / "align_meta"
     # The folder used for Trakem2 projects
-    fol_out_trakem2 = fol_out_base / 'align_trakem2'
+    fol_out_trakem2 = fol_out_base / "align_trakem2"
     # The estimated if-imc transformation matrix
-    fn_transf_ifslide_imcslide = fol_out_meta / 'transform_ifslide_imcslide.txt'
+    fn_transf_ifslide_imcslide = fol_out_meta / "transform_ifslide_imcslide.txt"
     # The table containing the coordinates of the individual IMC acquisitions
-    fn_cords = fol_out_meta / 'dat_cords.csv'
+    fn_cords = fol_out_meta / "dat_cords.csv"
     # The table containing the corping coordinates
-    fn_cropmeta = fol_out_meta / 'dat_cropmeta.csv'
+    fn_cropmeta = fol_out_meta / "dat_cropmeta.csv"
     # The coordinates of the scenes
-    fn_scenecords = fol_out_meta / 'dat_scenecords.csv'
+    fn_scenecords = fol_out_meta / "dat_scenecords.csv"
     # The folder containing the aligned spheroid crops
     fol_crop_align = folder_spherecrop_aligned
     # File containing cropping cordinat (output)
-    fn_scene_rcrop = fol_out_meta / 'dat_scene_rcrop.csv'
+    fn_scene_rcrop = fol_out_meta / "dat_scene_rcrop.csv"
+
 
 AlignmentConf.fol_slide.mkdir(exist_ok=True)
 
+
 rule alignment_get_ifslide_imcslide_transf:
-    '''
+    """
     Coarse align IF/IMC coordinate systems by aligning
     two slides manually. Saves the resulting transformation
     matrix.
-    '''
-    message: 'Coarse align IF-IMC coordinate systems'
+    """
+    message:
+        "Coarse align IF-IMC coordinate systems"
     input:
-         fol_slide = AlignmentConf.fol_slide,
-         fol_imc = AlignmentConf.fol_imc,
-         mcd_done = fn_all_mcd_converted,
-         slides_done = AlignmentConf.fn_all_slides_dl
+        fol_slide=AlignmentConf.fol_slide,
+        fol_imc=AlignmentConf.fol_imc,
+        mcd_done=fn_all_mcd_converted,
+        slides_done=AlignmentConf.fn_all_slides_dl,
     output:
-          fn_transf_ifslide_imcslide=AlignmentConf.fn_transf_ifslide_imcslide
+        fn_transf_ifslide_imcslide=AlignmentConf.fn_transf_ifslide_imcslide,
     container:
-             'docker://votti/alignment:v1.9'
+        "docker://votti/alignment:v1.9"
     log:
-       notebook='logs/alignment/0_inital_coord_matching.py.ipynb'
+        notebook="logs/alignment/0_inital_coord_matching.py.ipynb",
     notebook:
-            'notebooks/alignment/0_inital_coord_matching.py.ipynb'
+        "notebooks/alignment/0_inital_coord_matching.py.ipynb"
+
 
 rule alignment_prepare_data:
-    '''
+    """
     Prepare the images for fine-alignment:
         - Identify matching IF Scene with matching IMC plug sections (=Panoramas)
           based on the roughly aligned coordinate system
         - Extract scene images from the slide scan .czi files
         - Write metadata file for the aligned scene/panoramas (scenecords)
         - Write metadata files for the cropped spheres within panoramas (cropmeta)
-    '''
-    message: 'Prepare images for alignment'
+    """
+    message:
+        "Prepare images for alignment"
     input:
-         fn_slidematch=AlignmentConf.fn_slidematch,
-         fn_transf_ifslide_imcslide=AlignmentConf.fn_transf_ifslide_imcslide,
-         fol_imc=AlignmentConf.fol_imc,
-         fol_crop=AlignmentConf.fol_crop,
-         fol_slide=AlignmentConf.fol_slide,
-         fol_cp_full=AlignmentConf.fol_cp_full
+        fn_slidematch=AlignmentConf.fn_slidematch,
+        fn_transf_ifslide_imcslide=AlignmentConf.fn_transf_ifslide_imcslide,
+        fol_imc=AlignmentConf.fol_imc,
+        fol_crop=AlignmentConf.fol_crop,
+        fol_slide=AlignmentConf.fol_slide,
+        fol_cp_full=AlignmentConf.fol_cp_full,
     output:
-          fol_out_imgs=directory(AlignmentConf.fol_out_imgs),
-          fn_cords=AlignmentConf.fn_cords,
-          fn_scenecords=AlignmentConf.fn_scenecords,
-          fn_cropmeta=AlignmentConf.fn_cropmeta,
+        fol_out_imgs=directory(AlignmentConf.fol_out_imgs),
+        fn_cords=AlignmentConf.fn_cords,
+        fn_scenecords=AlignmentConf.fn_scenecords,
+        fn_cropmeta=AlignmentConf.fn_cropmeta,
     params:
-          channel_slide = AlignmentConf.channel_slide,
-          re_imcac = AlignmentConf.re_imcac,
-          re_crop = AlignmentConf.re_crop,
-          fn_crop_glob = AlignmentConf.fn_crop_glob
+        channel_slide=AlignmentConf.channel_slide,
+        re_imcac=AlignmentConf.re_imcac,
+        re_crop=AlignmentConf.re_crop,
+        fn_crop_glob=AlignmentConf.fn_crop_glob,
     container:
-             'docker://votti/alignment:v1.9'
+        "docker://votti/alignment:v1.9"
     log:
-       notebook='logs/alignment/1_prepare_data.py.ipynb'
+        notebook="logs/alignment/1_prepare_data.py.ipynb",
     threads: 4
     resources:
-             mem='64G',
-             time='180'
+        mem="64G",
+        time="180",
     notebook:
-            'notebooks/alignment/1_prepare_data.py.ipynb'
+        "notebooks/alignment/1_prepare_data.py.ipynb"
+
 
 checkpoint alignment_align_imgs:
-    '''
+    """
     Fine align IMC images with IF slidescan:
         - First align each Scene/Panorama ('rough align')
         - Then crop the sphere region from the scene and align each sphere image
           individually ('fine align').
         - Finally: crop the aligned IF sphere images and save them as a new stack.
-    '''
-    message: 'Align IF slidescans with IMC sphere images'
+    """
+    message:
+        "Align IF slidescans with IMC sphere images"
     input:
-         fol_out_imgs=AlignmentConf.fol_out_imgs,
-         fn_cords=AlignmentConf.fn_cords,
-         fn_scenecords=AlignmentConf.fn_scenecords,
-         fn_cropmeta=AlignmentConf.fn_cropmeta,
-         fn_transf_ifslide_imcslide=AlignmentConf.fn_transf_ifslide_imcslide,
-         fol_cp_full=AlignmentConf.fol_cp_full,
-         fol_crop=AlignmentConf.fol_crop
+        fol_out_imgs=AlignmentConf.fol_out_imgs,
+        fn_cords=AlignmentConf.fn_cords,
+        fn_scenecords=AlignmentConf.fn_scenecords,
+        fn_cropmeta=AlignmentConf.fn_cropmeta,
+        fn_transf_ifslide_imcslide=AlignmentConf.fn_transf_ifslide_imcslide,
+        fol_cp_full=AlignmentConf.fol_cp_full,
+        fol_crop=AlignmentConf.fol_crop,
     output:
-          fol_spherecrop_aligned=directory(folder_spherecrop_aligned),
-          fol_out_trakem2=directory(AlignmentConf.fol_out_trakem2),
-          fn_scene_rcrop=AlignmentConf.fn_scene_rcrop
+        fol_spherecrop_aligned=directory(folder_spherecrop_aligned),
+        fol_out_trakem2=directory(AlignmentConf.fol_out_trakem2),
+        fn_scene_rcrop=AlignmentConf.fn_scene_rcrop,
     params:
-          channel_slide=AlignmentConf.channel_slide
+        channel_slide=AlignmentConf.channel_slide,
     container:
-             'docker://votti/alignment:v1.9'
+        "docker://votti/alignment:v1.9"
     log:
-       notebook='logs/alignment/2_run_trakem2_align.py.ipynb'
+        notebook="logs/alignment/2_run_trakem2_align.py.ipynb",
     threads: 8
     resources:
-             mem='64G',
-             time='180'
+        mem="64G",
+        time="180",
     notebook:
-            'notebooks/alignment/2_run_trakem2_align.py.ipynb'
-config_dict_cp.update({
-    'prepare_ilastikgfp': {
-        'run_size': 20,
-        'plugins': cp_plugins,
-        'pipeline': 'resources/cp_pipelines/4_2_prepareilastik_imcspheres_gfp.cppipe',
-        'input_files': [folder_spherecrop_tiff, folder_spherecrop_aligned, folder_spherecrop_sms],
-        'output_patterns': {'.': directory(folder_spherecrop_gfp)},
-    }
-})
+        "notebooks/alignment/2_run_trakem2_align.py.ipynb"
 
-config_dict_ilastik.update({
-    'dapiqc':
-        {'project': 'resources/classifiers/if_dapi_qc.ilp',
-         'message':
-            '''
+
+config_dict_cp.update(
+    {
+        "prepare_ilastikgfp": {
+            "run_size": 20,
+            "plugins": cp_plugins,
+            "pipeline": "resources/cp_pipelines/4_2_prepareilastik_imcspheres_gfp.cppipe",
+            "input_files": [
+                folder_spherecrop_tiff,
+                folder_spherecrop_aligned,
+                folder_spherecrop_sms,
+            ],
+            "output_patterns": {".": directory(folder_spherecrop_gfp)},
+        }
+    }
+)
+
+config_dict_ilastik.update(
+    {
+        "dapiqc": {
+            "project": "resources/classifiers/if_dapi_qc.ilp",
+            "message": """
             Apply a classifier trained to identify folded regions in images
             based on DAPI.
-            ''',
-         'run_size': 10,
-         'output_format': 'tiff',
-         'output_filename': f'{{nickname}}{suffix_probablities}{suffix_tiff}',
-         'export_source': 'Probabilities',
-         'export_dtype': 'uint16',
-         'pipeline_result_drange': '"(0.0, 1.0)"',
-         'input_files': fkt_fns_dapi,
-         'output_pattern': directory(folder_spherecrop_dapiqc)
-         },
-    'propposclass':
-        {'project': 'resources/classifiers/gfp_classifier.ilp',
-         'message':
-         '''
+            """,
+            "run_size": 10,
+            "output_format": "tiff",
+            "output_filename": f"{{nickname}}{suffix_probablities}{suffix_tiff}",
+            "export_source": "Probabilities",
+            "export_dtype": "uint16",
+            "pipeline_result_drange": '"(0.0, 1.0)"',
+            "input_files": fkt_fns_dapi,
+            "output_pattern": directory(folder_spherecrop_dapiqc),
+        },
+        "propposclass": {
+            "project": "resources/classifiers/gfp_classifier.ilp",
+            "message": """
          Classifier based on the two anti GFP antibodies to detect overexpressing cells
-         ''',
-         'run_size': 50,
-         'output_format': 'tiff',
-         'output_filename': f'{{nickname}}{suffix_probablities}{suffix_tiff}',
-         'export_source': 'Probabilities',
-         'export_dtype': 'uint16',
-         'pipeline_result_drange': '"(0.0, 1.0)"',
-         'input_files': folder_spherecrop_gfp,
-         'output_pattern': directory(folder_spherecrop_probpos)
-         },
-    'gfp2xclass':
-    {'project': 'resources/classifiers/if_gfp_positive.ilp',
-     'message':
-         '''
+         """,
+            "run_size": 50,
+            "output_format": "tiff",
+            "output_filename": f"{{nickname}}{suffix_probablities}{suffix_tiff}",
+            "export_source": "Probabilities",
+            "export_dtype": "uint16",
+            "pipeline_result_drange": '"(0.0, 1.0)"',
+            "input_files": folder_spherecrop_gfp,
+            "output_pattern": directory(folder_spherecrop_probpos),
+        },
+        "gfp2xclass": {
+            "project": "resources/classifiers/if_gfp_positive.ilp",
+            "message": """
          Classifier based on the two anti GFP antibodies + IF GFP to detect overexpressing cells
-         ''',
-     'run_size': 100,
-     'output_format': 'tiff',
-     'output_filename': f'{{nickname}}{suffix_probablities}{suffix_tiff}',
-     'export_source': 'Probabilities',
-     'export_dtype': 'uint16',
-     'pipeline_result_drange': '"(0.0, 1.0)"',
-     'input_files': fkt_fns_gfp2x,
-     'output_pattern': directory(folder_spherecrop_probposgfpif)
-     }
+         """,
+            "run_size": 100,
+            "output_format": "tiff",
+            "output_filename": f"{{nickname}}{suffix_probablities}{suffix_tiff}",
+            "export_source": "Probabilities",
+            "export_dtype": "uint16",
+            "pipeline_result_drange": '"(0.0, 1.0)"',
+            "input_files": fkt_fns_gfp2x,
+            "output_pattern": directory(folder_spherecrop_probposgfpif),
+        },
+    }
+)
 
-})
-
-config_dict_cp.update({
-    'measure': {
-        'message':
-            '''
+config_dict_cp.update(
+    {
+        "measure": {
+            "message": """
             Quantify cell level data for the whole dataset.
-            ''',
-        'run_size': 5,
-        'plugins': cp_plugins,
-        'pipeline': 'resources/cp_pipelines/6_measure_imccells.cppipe',
-        'input_files': [folder_spherecrop_aligned, folder_spherecrop_dapiqc, folder_spherecrop_tiff,
-                                        folder_spherecrop_sms, folder_spherecrop_ilastik_prob,
-                                        folder_spherecrop_probpos, folder_spherecrop_probposgfpif,
-                                        folder_spherecrop_mask],
-        'output_patterns':{'.': cp_measurements_output,
-                                            'masks': directory(folder_cpout_masks),
-                                            'imgs': directory(folder_cpout_imgs)
-                           }
+            """,
+            "run_size": 5,
+            "plugins": cp_plugins,
+            "pipeline": "resources/cp_pipelines/6_measure_imccells.cppipe",
+            "input_files": [
+                folder_spherecrop_aligned,
+                folder_spherecrop_dapiqc,
+                folder_spherecrop_tiff,
+                folder_spherecrop_sms,
+                folder_spherecrop_ilastik_prob,
+                folder_spherecrop_probpos,
+                folder_spherecrop_probposgfpif,
+                folder_spherecrop_mask,
+            ],
+            "output_patterns": {
+                ".": cp_measurements_output,
+                "masks": directory(folder_cpout_masks),
+                "imgs": directory(folder_cpout_imgs),
+            },
         }
-}
+    }
 )
 # Target rules
 
+
 rule all_before_alignment:
-    message: 'All files required for alignment'
-    input: folder_spherecrop_mask
+    message:
+        "All files required for alignment"
+    input:
+        folder_spherecrop_mask,
+
 
 rule all_rawdata:
-    message: 'All rawdata'
-    input: fns_zenodo_imc, AlignmentConf.fn_all_slides_dl, fns_zenodo_comp
+    message:
+        "All rawdata"
+    input:
+        fns_zenodo_imc,
+        AlignmentConf.fn_all_slides_dl,
+        fns_zenodo_comp,
+
 
 ### Data retrieval
 rule retrieve_zenodo:
-    message: 'Retrieve data from zenodo: "{wildcards.zenodo_folder}"'
+    message:
+        'Retrieve data from zenodo: "{wildcards.zenodo_folder}"'
     output:
-          touch(pat_zenodo_rep)
+        touch(pat_zenodo_rep),
     conda:
-         'envs/env_zenodo.yml'
+        "envs/env_zenodo.yml"
     params:
-          fol_out = str(folder_resources / '{zenodo_folder}')
+        fol_out=str(folder_resources / "{zenodo_folder}"),
     shell:
-         '''cd {params.fol_out}
-         python -m zenodo_get  --sandbox {wildcards.zenodo_id}'''
+        """cd {params.fol_out}
+        python -m zenodo_get  --sandbox {wildcards.zenodo_id}"""
+
 
 # MCD to ome conversion
 rule mcdfolder2imcfolder:
-    message: 'Extract images from .mcd folder: "{wildcards.zipfol}"'
+    message:
+        'Extract images from .mcd folder: "{wildcards.zipfol}"'
     input:
-        fn_zip = str(pat_fn_zip)
-    output: touch(pat_fn_mcdparse_done)
+        fn_zip=str(pat_fn_zip),
+    output:
+        touch(pat_fn_mcdparse_done),
     threads: 1
     params:
-        fol_ome = folder_ome
+        fol_ome=folder_ome,
     resources:
         mem_mb=lambda wildcards, attempt: (attempt * 16000),
-        time='60'
-    container: container_imctools
+        time="60",
+    container:
+        container_imctools
     script:
-        'scripts/convert_imcfolder.py'
+        "scripts/convert_imcfolder.py"
+
 
 checkpoint all_mcd_converted:
-    message: 'Verify that all mcd files were converted.'
-    input: fns_all_mcd_done
+    message:
+        "Verify that all mcd files were converted."
+    input:
+        fns_all_mcd_done,
     output:
-        touch(fn_all_mcd_converted)
+        touch(fn_all_mcd_converted),
 
 
 # OME to analysis tiff conversion
 rule ome2full:
-    message: 'Extract "full" image stack from ome tiff.'
+    message:
+        'Extract "full" image stack from ome tiff.'
     input:
-        fol_ome = folder_ome,
-        panel = csv_panel,
-        done = fn_all_mcd_converted
+        fol_ome=folder_ome,
+        panel=csv_panel,
+        done=fn_all_mcd_converted,
     params:
-        column_used = 'full',
-        column_metal = csv_panel_metal,
-        suffix = suffix_full,
-        min_imgsize = img_minsize
+        column_used="full",
+        column_metal=csv_panel_metal,
+        suffix=suffix_full,
+        min_imgsize=img_minsize,
     output:
-        directory(folder_sphere_full)
+        directory(folder_sphere_full),
     resources:
         mem_mb=32000,
-        time=180
-
-    container: container_imctools
+        time=180,
+    container:
+        container_imctools
     script:
-        'scripts/imc2analysis.py'
+        "scripts/imc2analysis.py"
+
 
 rule ome2ilastik:
-    message: 'Extract "ilastik" image stack from ome tiff.'
+    message:
+        'Extract "ilastik" image stack from ome tiff.'
     input:
-        fol_ome = folder_ome,
-        panel = csv_panel,
-        done = fn_all_mcd_converted
+        fol_ome=folder_ome,
+        panel=csv_panel,
+        done=fn_all_mcd_converted,
     output:
-        directory(folder_sphere_ilastik)
-    container: container_imctools
+        directory(folder_sphere_ilastik),
+    container:
+        container_imctools
     resources:
-        mem_mb=16000
+        mem_mb=16000,
     params:
-        column_used = 'ilastik',
-        column_metal = csv_panel_metal,
-        suffix = suffix_ilastik,
-        min_imgsize = img_minsize
+        column_used="ilastik",
+        column_metal=csv_panel_metal,
+        suffix=suffix_ilastik,
+        min_imgsize=img_minsize,
     script:
-          'scripts/imc2analysis.py'
+        "scripts/imc2analysis.py"
+
 
 rule ome2sphereseg:
-    message: 'Extract "sphereseg" image stack from ome tiff.'
+    message:
+        'Extract "sphereseg" image stack from ome tiff.'
     input:
-         fol_ome = folder_ome,
-         panel = csv_panel,
-         done = fn_all_mcd_converted
+        fol_ome=folder_ome,
+        panel=csv_panel,
+        done=fn_all_mcd_converted,
     output:
-          directory(folder_sphereseg_ilastik)
-    container: container_imctools
+        directory(folder_sphereseg_ilastik),
+    container:
+        container_imctools
     params:
-          column_used = 'sphereseg',
-          column_metal = csv_panel_metal,
-          suffix = suffix_sphereseg,
-          min_imgsize = img_minsize
+        column_used="sphereseg",
+        column_metal=csv_panel_metal,
+        suffix=suffix_sphereseg,
+        min_imgsize=img_minsize,
     script:
-          'scripts/imc2analysis.py'
-
-
+        "scripts/imc2analysis.py"
 
 
 rule compensation_prepare_sm:
-    message: 'Calculate spillover matrix from single stain experiments'
+    message:
+        "Calculate spillover matrix from single stain experiments"
     input:
         fns_compensation=fns_zenodo_comp,
-        fn_ss_panel=fns_compensation_ss_panel
+        fn_ss_panel=fns_compensation_ss_panel,
     output:
-        fn_sm_mat
-    container: 'docker://votti/catalyst:v1.10'
+        fn_sm_mat,
+    container:
+        "docker://votti/catalyst:v1.10"
     resources:
-        mem='8G'
+        mem="8G",
     log:
-       notebook='logs/compensation/imc_generatespillmat_long.r.ipynb'
+        notebook="logs/compensation/imc_generatespillmat_long.r.ipynb",
     notebook:
-        'notebooks/compensation/imc_generatespillmat_long.r.ipynb'
+        "notebooks/compensation/imc_generatespillmat_long.r.ipynb"
+
 
 rule compensation_adapt_sm:
-    message: 'Adapt spillover matrix to "full" stack channels'
+    message:
+        'Adapt spillover matrix to "full" stack channels'
     input:
-         fn_sm_mat=fn_sm_mat,
-         fol_csvs=folder_sphere_full,
-         fol_sm_files=folder_spherecrop_tiff
+        fn_sm_mat=fn_sm_mat,
+        fol_csvs=folder_sphere_full,
+        fol_sm_files=folder_spherecrop_tiff,
     output:
-          fol_out=directory(folder_spherecrop_sms)
+        fol_out=directory(folder_spherecrop_sms),
     params:
-         re_fns_full='.*_full_l[0-9]+_x[0-9]+_y[0-9]+\.tiff'
-    container: 'docker://votti/catalyst:v1.10'
+        re_fns_full=".*_full_l[0-9]+_x[0-9]+_y[0-9]+\.tiff",
+    container:
+        "docker://votti/catalyst:v1.10"
     log:
-       notebook='logs/compensation/imc_adaptsm.r.ipynb'
+        notebook="logs/compensation/imc_adaptsm.r.ipynb",
     notebook:
-        'notebooks/compensation/imc_adaptsm.r.ipynb'
+        "notebooks/compensation/imc_adaptsm.r.ipynb"
+
 
 ## Rules to target Cellprofiler batch runs
-define_cellprofiler_rules(config_dict_cp, folder_base, container_cp=cellprofiler_container)
-define_ilastik_rules(config_dict_ilastik, folder_base, threads=ilastik_threads,
-                     mem_mb=ilastik_mem_mb, container_ilastik=ilastik_container)
+define_cellprofiler_rules(
+    config_dict_cp, folder_base, container_cp=cellprofiler_container
+)
+define_ilastik_rules(
+    config_dict_ilastik,
+    folder_base,
+    threads=ilastik_threads,
+    mem_mb=ilastik_mem_mb,
+    container_ilastik=ilastik_container,
+)
 
 ### Varia
-fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
-fol_cluster = pathlib.Path('vizano@cluster.s3it.uzh.ch:/scratch/vizano/SpheroidPublication')
+fol_local = pathlib.Path("/mnt/scratch/vitoz/Git/SpheroidPublication")
+fol_cluster = pathlib.Path(
+    "vizano@cluster.s3it.uzh.ch:/scratch/vizano/SpheroidPublication"
+)
+
+
 rule sync_to_cluster:
     shell:
-         f'rsync -rtu {fol_local / "subworkflows/oexp_preproc"} {fol_cluster / "subworkflows"} --progress --exclude=".*" --exclude="pkgs/" --exclude=".snakemake" --exclude="results/"'
+        f'rsync -rtu {fol_local / "subworkflows/oexp_preproc"} {fol_cluster / "subworkflows"} --progress --exclude=".*" --exclude="pkgs/" --exclude=".snakemake" --exclude="results/"'
+
 
 rule sync_from_cluster:
     shell:
-         f'rsync -rtu {fol_cluster / "subworkflows/oexp_preproc"} {fol_local / "subworkflows"}  --progress --exclude=".*" --exclude="phys/resources" --exclude "phys/pkgs" --exclude="results/align_trakem2"'
+        f'rsync -rtu {fol_cluster / "subworkflows/oexp_preproc"} {fol_local / "subworkflows"}  --progress --exclude=".*" --exclude="phys/resources" --exclude "phys/pkgs" --exclude="results/align_trakem2"'
+
 
 rule clean:
     shell:
         "rm -R {folder_base}"
-
