@@ -1,0 +1,30 @@
+FROM continuumio/miniconda3:4.8.2
+
+# Set the working directory.
+WORKDIR ~
+
+# Run the command inside your image filesystem.
+RUN conda config --set always_yes yes --set changeps1 no
+RUN conda install -c conda-forge pip python=3.7
+RUN mamba -c conda-forge -c bioconda -c votti -c defaults \
+   anndata \
+   ipykernel \
+   ipywidgets \
+   jupyter \
+   pandas \
+   pip \
+   setuptools \
+   numpy \
+   pandas \
+   scipy \
+   sqlalchemy \
+   matplotlib \
+   scanpy \
+   leidenalg \
+   jupytext \
+   imctools=1.0.7 \
+   matplotlib-scalebar \
+   plotnine \
+   simplegeneric \
+   spherpro \
+   pycytools

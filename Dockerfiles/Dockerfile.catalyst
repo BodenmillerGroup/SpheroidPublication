@@ -1,0 +1,9 @@
+# Use the official image as a parent image.
+FROM continuumio/miniconda3:4.8.2
+
+# Set the working directory.
+WORKDIR ~
+
+# Run the command inside your image filesystem.
+RUN conda install -c conda-forge mamba=0.4.2
+RUN mamba install -y -c bioconda -c conda-forge -c r -c defaults bioconductor-catalyst=1.10 r-irkernel r-dplyr r-data.table r-ggpmisc r-dtplyr r-stringr jupyter jupytext unzip r-tiff

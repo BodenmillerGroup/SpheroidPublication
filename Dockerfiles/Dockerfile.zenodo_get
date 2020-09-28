@@ -1,0 +1,9 @@
+FROM continuumio/miniconda3:4.8.2
+
+# Set the working directory.
+WORKDIR ~
+
+# Run the command inside your image filesystem.
+RUN conda config --set always_yes yes --set changeps1 no
+RUN conda install -c conda-forge pip python=3.8
+RUN pip install zenodo-get==1.3.2
