@@ -5,8 +5,6 @@ import pathlib
 import pandas as pd
 from snakemake.io import expand, glob_wildcards
 
-from scripts import zenodo
-
 # Global conda container
 base_container = 'docker://votti/miniconda3mamba:mamba0.3.0'
 # Ilastik configuration
