@@ -8,98 +8,121 @@ import pandas as pd
 from snakemake.utils import validate
 
 # Global conda container
-container_base = 'docker://votti/miniconda3mamba:v0.4.2'
+container_base = "docker://votti/miniconda3mamba:v0.4.2"
+
 
 # Define dependency on preprocessing workflows
 subworkflow phys_preproc:
-    workdir:
-        "../../phys_preproc"
-    snakefile:
-        "../../phys_preproc/workflow/Snakefile"
+    workdir: "../../phys_preproc"
+    snakefile: "../../phys_preproc/workflow/Snakefile"
+
 
 subworkflow bf_preproc:
-    workdir:
-           "../../bf_preproc"
-    snakefile:
-             "../../bf_preproc/workflow/Snakefile"
+    workdir: "../../bf_preproc"
+    snakefile: "../../bf_preproc/workflow/Snakefile"
+
 
 # Extract variables from configuration
 ## Input/output
-fol_results = pathlib.Path('results')
-fol_resources = pathlib.Path('resources')
-fol_sp_config = fol_resources / 'spherpro_config'
-fn_panel_src = '../phys_preproc/config/panel.csv'
-fn_panel = fol_sp_config / 'panel.csv'
+fol_results = pathlib.Path("results")
+fol_resources = pathlib.Path("resources")
+fol_sp_config = fol_resources / "spherpro_config"
+fn_panel_src = "../phys_preproc/config/panel.csv"
+fn_panel = fol_sp_config / "panel.csv"
 
-fn_sp_config = fol_sp_config / 'config.yml'
-fol_db = fol_results / 'db'
-fn_db = ancient(fol_db / 'spherpro.db')
-fol_manual_qc = fol_results / 'manual_qc'
-fol_manual_qc_raw = fol_manual_qc / 'raw'
-fol_manual_qc_bad = fol_manual_qc / 'bad'
-fn_manual_qc_dat = fol_resources / 'dat_badimgs.csv'
+fn_sp_config = fol_sp_config / "config.yml"
+fol_db = fol_results / "db"
+fn_db = ancient(fol_db / "spherpro.db")
+fol_manual_qc = fol_results / "manual_qc"
+fol_manual_qc_raw = fol_manual_qc / "raw"
+fol_manual_qc_bad = fol_manual_qc / "bad"
+fn_manual_qc_dat = fol_resources / "dat_badimgs.csv"
 
-fn_bf_quantification = fol_resources / 'hq_spheres.csv'
-fn_bf_qc = fol_resources / 'bfqc_manual_v1.csv'
+fn_bf_quantification = fol_resources / "hq_spheres.csv"
+fn_bf_qc = fol_resources / "bfqc_manual_v1.csv"
 # Create folders
 fol_manual_qc.mkdir(parents=True, exist_ok=True)
 
 # Analysis output
-fol_figures = fol_results / 'figures'
+fol_figures = fol_results / "figures"
 fol_figures.mkdir(exist_ok=True)
-fol_figures_marker_relationship = fol_figures / 'marker_relationship'
-fol_figures_cellline_heatmap = fol_figures / 'cellline_heatmap'
-fol_figures_optimal_ord = fol_figures / 'optimal_ord'
-fol_overview_stats = fol_figures / 'overview_stats'
-fol_figures_d2rim = fol_figures / 'd2rim'
-fol_figures_apoptosis = fol_figures / 'apoptosis_imgs'
-fol_figures_umap = fol_figures / 'umap_analysis'
+fol_figures_marker_relationship = fol_figures / "marker_relationship"
+fol_figures_cellline_heatmap = fol_figures / "cellline_heatmap"
+fol_figures_optimal_ord = fol_figures / "optimal_ord"
+fol_overview_stats = fol_figures / "overview_stats"
+fol_figures_d2rim = fol_figures / "d2rim"
+fol_figures_apoptosis = fol_figures / "apoptosis_imgs"
+fol_figures_umap = fol_figures / "umap_analysis"
 
 # Preprocessing indicators
-fn_db_preprocessed = fol_db / 'dbpreprocess.done'
-fn_db_manualqcapplied = fol_db / 'manualqcapplied.done'
-fn_db_debarcoded = fol_db / 'debarcoded.done'
-fn_db_bfqc = fol_db / 'bfqcapplied.done'
-fn_db_d2rim = fol_db / 'd2rimapplied.done'
-fn_db_cellclass = fol_db / 'cellsclassified.done'
+fn_db_preprocessed = fol_db / "dbpreprocess.done"
+fn_db_manualqcapplied = fol_db / "manualqcapplied.done"
+fn_db_debarcoded = fol_db / "debarcoded.done"
+fn_db_bfqc = fol_db / "bfqcapplied.done"
+fn_db_d2rim = fol_db / "d2rimapplied.done"
+fn_db_cellclass = fol_db / "cellsclassified.done"
 
 # all preprocessing files needed:
-folder_preproc_cp = pathlib.Path('results') / 'cpout'
-folder_ome = pathlib.Path('results')  / 'ome'
+folder_preproc_cp = pathlib.Path("results") / "cpout"
+folder_ome = pathlib.Path("results") / "ome"
 ## Define Output files
-fn_cpout_image = folder_preproc_cp / 'Image.csv'
-fn_cpout_cell = folder_preproc_cp / 'cell.csv'
-fn_cpout_experiment = folder_preproc_cp / 'Experiment.csv'
-fn_cpout_cyto = folder_preproc_cp / 'cyto.csv'
-fn_cpout_nuclei = folder_preproc_cp / 'nuclei.csv'
-fn_cpout_nucleiexp = folder_preproc_cp / 'nucleiexp.csv'
-fn_cpout_objectrel = folder_preproc_cp / 'Object relationships.csv'
-folder_cpout_imgs = folder_preproc_cp / 'imgs'
-folder_cpout_masks = folder_preproc_cp / 'masks'
-cp_measurements_output = [ancient(fn) for fn in (fn_cpout_objectrel,
-                                        directory(folder_cpout_imgs), fn_cpout_image, fn_cpout_cell,
-                                        fn_cpout_experiment,
-                          fn_cpout_cyto, fn_cpout_nucleiexp, fn_cpout_nuclei,
-                           directory(folder_cpout_masks))]
+fn_cpout_image = folder_preproc_cp / "Image.csv"
+fn_cpout_cell = folder_preproc_cp / "cell.csv"
+fn_cpout_experiment = folder_preproc_cp / "Experiment.csv"
+fn_cpout_cyto = folder_preproc_cp / "cyto.csv"
+fn_cpout_nuclei = folder_preproc_cp / "nuclei.csv"
+fn_cpout_nucleiexp = folder_preproc_cp / "nucleiexp.csv"
+fn_cpout_objectrel = folder_preproc_cp / "Object relationships.csv"
+folder_cpout_imgs = folder_preproc_cp / "imgs"
+folder_cpout_masks = folder_preproc_cp / "masks"
+cp_measurements_output = [
+    ancient(fn)
+    for fn in (
+        fn_cpout_objectrel,
+        directory(folder_cpout_imgs),
+        fn_cpout_image,
+        fn_cpout_cell,
+        fn_cpout_experiment,
+        fn_cpout_cyto,
+        fn_cpout_nucleiexp,
+        fn_cpout_nuclei,
+        directory(folder_cpout_masks),
+    )
+]
 
-cp_measurements_output_srt = [ancient(phys_preproc(str(fn))) for fn in cp_measurements_output]
+cp_measurements_output_srt = [
+    ancient(phys_preproc(str(fn))) for fn in cp_measurements_output
+]
 
 
 # Target rules
 rule all:
-    input: fn_panel, fn_db, fn_db_d2rim, fol_figures_marker_relationship,
-        fol_figures_optimal_ord, fol_figures_cellline_heatmap,
-        fol_figures_d2rim, fol_figures_apoptosis, fol_figures_umap
+    input:
+        fn_panel,
+        fn_db,
+        fn_db_d2rim,
+        fol_figures_marker_relationship,
+        fol_figures_optimal_ord,
+        fol_figures_cellline_heatmap,
+        fol_figures_d2rim,
+        fol_figures_apoptosis,
+        fol_figures_umap,
+
 
 rule get_panel:
-    input: fn_panel_src
-    output: fn_panel
+    input:
+        fn_panel_src,
+    output:
+        fn_panel,
     run:
         shutil.copy(input[0], output[0])
 
+
 rule get_cpout:
-    input: cp_measurements_output_srt
-    output: cp_measurements_output
+    input:
+        cp_measurements_output_srt,
+    output:
+        cp_measurements_output,
     run:
         folder_preproc_cp.mkdir(exist_ok=True)
         for s, t in zip(input, output):
@@ -109,463 +132,548 @@ rule get_cpout:
             cmd = f'rsync -rts "{s}" "{pathlib.Path(t).parent}"'
             subp.check_call(str(cmd), shell=True)
 
+
 rule get_ome:
-    input: phys_preproc('results/all_mcd_converted.done')
-    output: directory(folder_ome)
+    input:
+        phys_preproc("results/all_mcd_converted.done"),
+    output:
+        directory(folder_ome),
     run:
         folder_ome.mkdir(exist_ok=True)
         # Somehow shutil copytree and co failed
         # likely to to a NFS related error. Resorting
         # to this workaround.
-        parent = pathlib.Path(input[0]).parent / 'ome'
+        parent = pathlib.Path(input[0]).parent / "ome"
         cmd = f'rsync -rts "{parent}" "{pathlib.Path(output[0]).parent}"'
         subp.check_call(str(cmd), shell=True)
 
+
 rule get_bf_quantification:
-    input: bf_preproc('results/hq_spheres.csv')
+    input:
+        bf_preproc("results/hq_spheres.csv"),
     output:
-        fn_bf_quantification
+        fn_bf_quantification,
     shell:
-        'cp {input} {output}'
+        "cp {input} {output}"
+
 
 rule get_bf_qc:
-    input: '../bf_preproc/resources/bfqc_manual_v1.csv'
+    input:
+        "../bf_preproc/resources/bfqc_manual_v1.csv",
     output:
-          fn_bf_qc
+        fn_bf_qc,
     shell:
-         'cp {input} {output}'
+        "cp {input} {output}"
+
 
 rule step2_init_database:
     input:
         fn_panel=fn_panel,
         fn_config=fn_sp_config,
-        fns_cp = cp_measurements_output
+        fns_cp=cp_measurements_output,
     output:
-        fn_db
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        fn_db,
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-             mem='32G',
-             time='60'
+        mem="32G",
+        time="60",
     log:
-        notebook='logs/2_initialize_spherbro.py.ipynb'
+        notebook="logs/2_initialize_spherbro.py.ipynb",
     notebook:
-        'notebooks/2_initialize_spherbro.py.ipynb'
+        "notebooks/2_initialize_spherbro.py.ipynb"
+
 
 rule step3_1_preprocess_db:
     input:
-         fn_panel=fn_panel,
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         fns_cp = cp_measurements_output
+        fn_panel=fn_panel,
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        fns_cp=cp_measurements_output,
     output:
-         touch(fn_db_preprocessed)
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        touch(fn_db_preprocessed),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-             mem='32G',
-             time='60'
+        mem="32G",
+        time="60",
     log:
-       notebook='logs/3_1_dbpreprocess.py.ipynb'
+        notebook="logs/3_1_dbpreprocess.py.ipynb",
     notebook:
-        'notebooks/3_1_dbpreprocess.py.ipynb'
+        "notebooks/3_1_dbpreprocess.py.ipynb"
+
 
 rule step3_2_plot_manualqc_images:
     input:
-         fn_panel=fn_panel,
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         fns_cp = cp_measurements_output,
-         is_preprocessed=fn_db_preprocessed
+        fn_panel=fn_panel,
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        fns_cp=cp_measurements_output,
+        is_preprocessed=fn_db_preprocessed,
     output:
-         directory(fol_manual_qc_raw)
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        directory(fol_manual_qc_raw),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-             mem='32G',
-             time='60'
+        mem="32G",
+        time="60",
     log:
-        notebook='logs/3_2_plot_manualqc_images.py.ipynb'
+        notebook="logs/3_2_plot_manualqc_images.py.ipynb",
     notebook:
-        'notebooks/3_2_plot_manualqc_images.py.ipynb'
+        "notebooks/3_2_plot_manualqc_images.py.ipynb"
+
 
 rule step3_3_identify_manualqc_images:
     input:
-         fn_panel=fn_panel,
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         fns_cp = cp_measurements_output,
-         is_preprocessed=fn_db_preprocessed,
-         fol_manual_qc_raw=fol_manual_qc_raw
+        fn_panel=fn_panel,
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        fns_cp=cp_measurements_output,
+        is_preprocessed=fn_db_preprocessed,
+        fol_manual_qc_raw=fol_manual_qc_raw,
     params:
-         fn_manual_qc_dat
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        fn_manual_qc_dat,
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-             mem='32G',
-             time='60'
+        mem="32G",
+        time="60",
     log:
-       notebook='logs/3_3_identify_manualqc.py.ipynb'
+        notebook="logs/3_3_identify_manualqc.py.ipynb",
     notebook:
-       "notebooks/3_3_identify_manualqc.py.ipynb"
+        "notebooks/3_3_identify_manualqc.py.ipynb"
+
 
 rule step3_4_apply_manualqc_images:
     input:
-         fn_panel=fn_panel,
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         fns_cp = cp_measurements_output,
-         is_preprocessed=fn_db_preprocessed,
-         fn_manual_qc_dat=ancient(fn_manual_qc_dat)
+        fn_panel=fn_panel,
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        fns_cp=cp_measurements_output,
+        is_preprocessed=fn_db_preprocessed,
+        fn_manual_qc_dat=ancient(fn_manual_qc_dat),
     output:
-         touch(fn_db_manualqcapplied)
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        touch(fn_db_manualqcapplied),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-             mem='32G',
-             time='60'
+        mem="32G",
+        time="60",
     log:
-       notebook='logs/3_4_apply_manual_qc.py.ipynb'
+        notebook="logs/3_4_apply_manual_qc.py.ipynb",
     notebook:
-       'notebooks/3_4_apply_manual_qc.py.ipynb'
+        "notebooks/3_4_apply_manual_qc.py.ipynb"
+
 
 rule step4_1_debarcode:
     input:
-         fn_panel=fn_panel,
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         fns_cp = cp_measurements_output,
-         is_preprocessed=fn_db_preprocessed,
-         is_manualqc=fn_db_manualqcapplied
+        fn_panel=fn_panel,
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        fns_cp=cp_measurements_output,
+        is_preprocessed=fn_db_preprocessed,
+        is_manualqc=fn_db_manualqcapplied,
     output:
-          touch(fn_db_debarcoded)
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        touch(fn_db_debarcoded),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-             mem='32G',
-             time='60'
+        mem="32G",
+        time="60",
     log:
-       notebook='logs/4_1_debarcode.py.ipynb'
+        notebook="logs/4_1_debarcode.py.ipynb",
     notebook:
-        'notebooks/4_1_debarcode.py.ipynb'
+        "notebooks/4_1_debarcode.py.ipynb"
+
 
 rule step4_2_apply_bfqc:
     input:
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         fn_bf_qc = fn_bf_qc,
-         is_debarcoded=fn_db_debarcoded
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        fn_bf_qc=fn_bf_qc,
+        is_debarcoded=fn_db_debarcoded,
     output:
-          touch(fn_db_bfqc)
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        touch(fn_db_bfqc),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 2
     resources:
-             mem='4G',
-             time='60'
+        mem="4G",
+        time="60",
     log:
-       notebook='logs/4_2_apply_bfqc.py.ipynb'
+        notebook="logs/4_2_apply_bfqc.py.ipynb",
     notebook:
-        'notebooks/4_2_apply_bfqc.py.ipynb'
+        "notebooks/4_2_apply_bfqc.py.ipynb"
+
 
 rule step4_3_correct2drim:
     input:
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         fn_bf_quantification = fn_bf_quantification,
-         is_debarcoded=fn_db_bfqc
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        fn_bf_quantification=fn_bf_quantification,
+        is_debarcoded=fn_db_bfqc,
     output:
-          touch(fn_db_d2rim)
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        touch(fn_db_d2rim),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 2
     resources:
-             mem='16G',
-             time='60'
+        mem="16G",
+        time="60",
     log:
-       notebook='logs/4_3_correct2drim.py.ipynb'
+        notebook="logs/4_3_correct2drim.py.ipynb",
     notebook:
-       'notebooks/4_3_correct2drim.py.ipynb'
+        "notebooks/4_3_correct2drim.py.ipynb"
 
 
 rule step4_4_add_cellstate_class:
     input:
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         is_d2rim=fn_db_d2rim
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        is_d2rim=fn_db_d2rim,
     output:
-          touch(fn_db_cellclass)
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        touch(fn_db_cellclass),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-             mem='64G',
-             time='60'
+        mem="64G",
+        time="60",
     log:
-       notebook='logs/4_4_add_cellstate_class.py.ipynb'
+        notebook="logs/4_4_add_cellstate_class.py.ipynb",
     notebook:
-        'notebooks/4_4_add_cellstate_class.py.ipynb'
-
-exp_celllines = [ 'HT-29', 'DLD-1', 'T-REx-293', 'T-47D']
-exp_timepoints = ['72', '96']
-exp_concentrations = ['0.25' , '0.5', '1.0']
-perrep = [0,1]
-res_types = ['stats', 'params']
-
-all_conds = expand('{cl}_c{c}_tp{tp}', cl=exp_celllines, c=exp_concentrations, tp=exp_timepoints)
-main_conds = [f'{cl}_c{c}_tp{tp}' 
-                  for cl, c, tp in 
-                  [('T-REx-293', '0.5', '96'),
-                   ('HT-29','0.5','96'),
-                   ('DLD-1','0.5', '96'),
-                   ('T-47D', '1.0', '96')] ]
+        "notebooks/4_4_add_cellstate_class.py.ipynb"
 
 
-fol_modstats = fol_results / 'modstats'
-fol_modstats_percond = fol_modstats / 'percond'
+exp_celllines = ["HT-29", "DLD-1", "T-REx-293", "T-47D"]
+exp_timepoints = ["72", "96"]
+exp_concentrations = ["0.25", "0.5", "1.0"]
+perrep = [0, 1]
+res_types = ["stats", "params"]
+
+all_conds = expand(
+    "{cl}_c{c}_tp{tp}", cl=exp_celllines, c=exp_concentrations, tp=exp_timepoints
+)
+main_conds = [
+    f"{cl}_c{c}_tp{tp}"
+    for cl, c, tp in [
+        ("T-REx-293", "0.5", "96"),
+        ("HT-29", "0.5", "96"),
+        ("DLD-1", "0.5", "96"),
+        ("T-47D", "1.0", "96"),
+    ]
+]
+
+
+fol_modstats = fol_results / "modstats"
+fol_modstats_percond = fol_modstats / "percond"
 fol_modstats.mkdir(exist_ok=True)
 fol_modstats_percond.mkdir(exist_ok=True)
-fn_modstats_run = str(fol_modstats_percond/ 'dat_mod_{res_types}_{cellline}_{tp}_{conc}_perrep{rep}.csv')
-fn_modstats = str(fol_modstats / 'dat_mod_{res_types}_perrep{rep}.csv')
+fn_modstats_run = str(
+    fol_modstats_percond / "dat_mod_{res_types}_{cellline}_{tp}_{conc}_perrep{rep}.csv"
+)
+fn_modstats = str(fol_modstats / "dat_mod_{res_types}_perrep{rep}.csv")
+
 
 rule fit_marker_relations:
     input:
         fn_config=fn_sp_config,
-        is_preproc=fn_db_d2rim
+        is_preproc=fn_db_d2rim,
     output:
-        fn_out_stats = expand(fn_modstats_run, res_types='stats', allow_missing=True),
-        fn_out_params = expand(fn_modstats_run, res_types='params', allow_missing=True)
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        fn_out_stats=expand(fn_modstats_run, res_types="stats", allow_missing=True),
+        fn_out_params=expand(fn_modstats_run, res_types="params", allow_missing=True),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 2
     resources:
-        mem='8G',
-        time='60'
+        mem="8G",
+        time="60",
     params:
-        object_type='cell'
+        object_type="cell",
     script:
-        'scripts/fit_marker_relations.py'
+        "scripts/fit_marker_relations.py"
+
 
 rule combine_marker_relations_stats:
     input:
-        expand(fn_modstats_run,
-            cellline=exp_celllines, tp=exp_timepoints,
-            conc=exp_concentrations, allow_missing=True)
+        expand(
+            fn_modstats_run,
+            cellline=exp_celllines,
+            tp=exp_timepoints,
+            conc=exp_concentrations,
+            allow_missing=True,
+        ),
     output:
-        fn_modstats
+        fn_modstats,
     run:
         dats = [pd.read_csv(inp) for inp in input]
         dat = pd.concat(dats)
         dat.to_csv(output[0])
 
+
 rule step6_results_marker_relations:
     input:
         fn_config=fn_sp_config,
         is_preproc=fn_db_d2rim,
-        fn_modstats = expand(fn_modstats, res_types='stats', rep=0)[0],
-        fn_modstats_perrep = expand(fn_modstats, res_types='stats', rep=1)[0],
-        fn_modstats_params = expand(fn_modstats, res_types='params', rep=0)[0],
-        fn_panel_ord = fol_resources / 'pannel_ordered.csv',
-        fn_bf_quantification = fn_bf_quantification
+        fn_modstats=expand(fn_modstats, res_types="stats", rep=0)[0],
+        fn_modstats_perrep=expand(fn_modstats, res_types="stats", rep=1)[0],
+        fn_modstats_params=expand(fn_modstats, res_types="params", rep=0)[0],
+        fn_panel_ord=fol_resources / "pannel_ordered.csv",
+        fn_bf_quantification=fn_bf_quantification,
     params:
-        all_conds = all_conds,
-        main_conds = main_conds,
-        celllines = exp_celllines
+        all_conds=all_conds,
+        main_conds=main_conds,
+        celllines=exp_celllines,
     output:
-        fol_out = directory(fol_figures_marker_relationship),
-        fn_example_submodels = report(fol_figures / 'fig3_example_submodels.png', caption='report/example_submodels.rst')
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        fol_out=directory(fol_figures_marker_relationship),
+        fn_example_submodels=report(
+            fol_figures / "fig3_example_submodels.png",
+            caption="report/example_submodels.rst",
+        ),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-        mem='8G',
-        time='60'
+        mem="8G",
+        time="60",
     log:
-        notebook='logs/6_1_results_marker_relations.py.ipynb'
+        notebook="logs/6_1_results_marker_relations.py.ipynb",
     notebook:
-        'notebooks/6_1_results_marker_relations.py.ipynb'
+        "notebooks/6_1_results_marker_relations.py.ipynb"
+
 
 rule step6_celline_heatmap:
     input:
-         fn_config=fn_sp_config,
-         is_preproc=fn_db_d2rim,
-         fn_modstats = expand(fn_modstats, res_types='stats', rep=0)[0],
-         fn_modstats_perrep = expand(fn_modstats, res_types='stats', rep=1)[0],
-         fn_modstats_params = expand(fn_modstats, res_types='params', rep=0)[0],
-         fn_panel_ord = fol_resources / 'pannel_ordered.csv',
-         fn_bf_quantification = fn_bf_quantification
+        fn_config=fn_sp_config,
+        is_preproc=fn_db_d2rim,
+        fn_modstats=expand(fn_modstats, res_types="stats", rep=0)[0],
+        fn_modstats_perrep=expand(fn_modstats, res_types="stats", rep=1)[0],
+        fn_modstats_params=expand(fn_modstats, res_types="params", rep=0)[0],
+        fn_panel_ord=fol_resources / "pannel_ordered.csv",
+        fn_bf_quantification=fn_bf_quantification,
     params:
-         all_conds = all_conds,
-         main_conds = main_conds,
-         celllines = exp_celllines
+        all_conds=all_conds,
+        main_conds=main_conds,
+        celllines=exp_celllines,
     output:
-         fol_out = directory(fol_figures_cellline_heatmap),
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        fol_out=directory(fol_figures_cellline_heatmap),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-        mem='8G',
-        time='60'
+        mem="8G",
+        time="60",
     log:
-       notebook='logs/6_2_celline_heatmap.py.ipynb'
+        notebook="logs/6_2_celline_heatmap.py.ipynb",
     notebook:
-       'notebooks/6_2_celline_heatmap.py.ipynb'
+        "notebooks/6_2_celline_heatmap.py.ipynb"
+
 
 rule step6_optimal_ord:
     input:
-         fn_config=fn_sp_config,
-         is_preproc=fn_db_d2rim,
-         fn_modstats = expand(fn_modstats, res_types='stats', rep=0)[0],
-         fn_modstats_perrep = expand(fn_modstats, res_types='stats', rep=1)[0],
-         fn_modstats_params = expand(fn_modstats, res_types='params', rep=0)[0],
-         fn_panel_ord = fol_resources / 'pannel_ordered.csv',
-         fn_bf_quantification = fn_bf_quantification
+        fn_config=fn_sp_config,
+        is_preproc=fn_db_d2rim,
+        fn_modstats=expand(fn_modstats, res_types="stats", rep=0)[0],
+        fn_modstats_perrep=expand(fn_modstats, res_types="stats", rep=1)[0],
+        fn_modstats_params=expand(fn_modstats, res_types="params", rep=0)[0],
+        fn_panel_ord=fol_resources / "pannel_ordered.csv",
+        fn_bf_quantification=fn_bf_quantification,
     params:
-         all_conds = all_conds,
-         main_conds = main_conds,
-         celllines = exp_celllines
+        all_conds=all_conds,
+        main_conds=main_conds,
+        celllines=exp_celllines,
     output:
-          fol_out = directory(fol_figures_optimal_ord)
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        fol_out=directory(fol_figures_optimal_ord),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-        mem='8G',
-        time='60'
+        mem="8G",
+        time="60",
     log:
-       notebook='logs/6_2_r2_optimal_ord.py.ipynb'
+        notebook="logs/6_2_r2_optimal_ord.py.ipynb",
     notebook:
-        'notebooks/6_2_r2_optimal_ord.py.ipynb'
+        "notebooks/6_2_r2_optimal_ord.py.ipynb"
 
 
 ## Varia:
 rule visualize_qc:
     input:
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         is_d2rim=fn_db_d2rim
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        is_d2rim=fn_db_d2rim,
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-             mem='32G',
-             time='60'
+        mem="32G",
+        time="60",
     log:
-       notebook='logs/99_qc_examples.py.ipynb'
+        notebook="logs/99_qc_examples.py.ipynb",
     notebook:
-            'notebooks/99_qc_examples.py.ipynb'
+        "notebooks/99_qc_examples.py.ipynb"
+
 
 rule site_overviews:
     input:
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         is_d2rim=fn_db_d2rim,
-         fol_ome=folder_ome
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        is_d2rim=fn_db_d2rim,
+        fol_ome=folder_ome,
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-             mem='32G',
-             time='60'
+        mem="32G",
+        time="60",
     log:
-       notebook='logs/99_site_overviews.py.ipynb'
+        notebook="logs/99_site_overviews.py.ipynb",
     notebook:
-            'notebooks/99_site_overviews.py.ipynb'
+        "notebooks/99_site_overviews.py.ipynb"
+
 
 rule step99_umap_analysis:
     input:
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         is_cc=fn_db_cellclass,
-         fn_panel_ord = fol_resources / 'pannel_ordered.csv'
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        is_cc=fn_db_cellclass,
+        fn_panel_ord=fol_resources / "pannel_ordered.csv",
     output:
-        fol_plots=directory(fol_figures_umap)
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        fol_plots=directory(fol_figures_umap),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-             mem='32G',
-             time='60'
+        mem="32G",
+        time="60",
     log:
-       notebook='logs/99_umap_analysis.py.ipynb'
+        notebook="logs/99_umap_analysis.py.ipynb",
     notebook:
-            'notebooks/99_umap_analysis.py.ipynb'
+        "notebooks/99_umap_analysis.py.ipynb"
+
 
 rule step99_overview_statistics:
     input:
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         has_d2rim=fn_db_d2rim
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        has_d2rim=fn_db_d2rim,
     output:
-          fol_plots=directory(fol_overview_stats)
-
+        fol_plots=directory(fol_overview_stats),
     params:
-          fol_figures=fol_figures
-    conda: 'envs/spherpro_env.yml'
+        fol_figures=fol_figures,
+    conda:
+        "envs/spherpro_env.yml"
     threads: 2
     resources:
-             mem='16G',
-             time='60'
+        mem="16G",
+        time="60",
     log:
-       notebook= 'logs/99_overview_statistics.py.ipynb'
+        notebook="logs/99_overview_statistics.py.ipynb",
     notebook:
-            'notebooks/99_overview_statistics.py.ipynb'
+        "notebooks/99_overview_statistics.py.ipynb"
+
 
 rule step99_apoptosis_imgs:
     input:
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         is_cc=fn_db_cellclass,
-         fn_panel_ord = fol_resources / 'pannel_ordered.csv'
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        is_cc=fn_db_cellclass,
+        fn_panel_ord=fol_resources / "pannel_ordered.csv",
     output:
-         fol_out=directory(fol_figures_apoptosis)
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        fol_out=directory(fol_figures_apoptosis),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-             mem='8G',
-             time='60'
+        mem="8G",
+        time="60",
     log:
-       notebook='logs/99_apoptosis_imgs.py.ipynb'
+        notebook="logs/99_apoptosis_imgs.py.ipynb",
     notebook:
-            'notebooks/99_apoptosis_imgs.py.ipynb'
+        "notebooks/99_apoptosis_imgs.py.ipynb"
+
 
 rule step99_d2rim_imgs:
     input:
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         has_d2rim=fn_db_d2rim
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        has_d2rim=fn_db_d2rim,
     output:
-          fol_out=directory(fol_figures_d2rim)
-    conda: 'envs/spherpro_env.yml'
-    container: container_base
+        fol_out=directory(fol_figures_d2rim),
+    conda:
+        "envs/spherpro_env.yml"
+    container:
+        container_base
     threads: 8
     resources:
-             mem='8G',
-             time='60'
+        mem="8G",
+        time="60",
     log:
-       notebook='logs/99_dist2rim_plots.py.ipynb'
+        notebook="logs/99_dist2rim_plots.py.ipynb",
     notebook:
-            'notebooks/99_dist2drim_plots.py.ipynb'
+        "notebooks/99_dist2drim_plots.py.ipynb"
+
 
 # Varia
-fol_local = pathlib.Path('/mnt/scratch/vitoz/Git/SpheroidPublication')
-fol_cluster = pathlib.Path('vizano@cluster.s3it.uzh.ch:/scratch/vizano/SpheroidPublication')
+fol_local = pathlib.Path("/mnt/scratch/vitoz/Git/SpheroidPublication")
+fol_cluster = pathlib.Path(
+    "vizano@cluster.s3it.uzh.ch:/scratch/vizano/SpheroidPublication"
+)
+
+
 rule sync_to_cluster:
     shell:
-         f'rsync -rtu  {fol_local / "subworkflows/phys_analysis"} {fol_cluster / "subworkflows"} --progress --exclude=".*" --exclude="pkgs/" --exclude=".snakemake" --exclude="results/"'
+        f'rsync -rtu  {fol_local / "subworkflows/phys_analysis"} {fol_cluster / "subworkflows"} --progress --exclude=".*" --exclude="pkgs/" --exclude=".snakemake" --exclude="results/"'
+
 
 rule sync_from_cluster:
     shell:
-         f'rsync -rtu  {fol_cluster / "subworkflows/phys_analysis"} {fol_local / "subworkflows"}   --progress --exclude=".*" --exclude="phys/resources" --exclude "phys_analysis/pkgs"'
+        f'rsync -rtu  {fol_cluster / "subworkflows/phys_analysis"} {fol_local / "subworkflows"}   --progress --exclude=".*" --exclude="phys/resources" --exclude "phys_analysis/pkgs"'
+
+
 rule clean:
     shell:
         "rm -R {folder_base}"
+
 
 # Data retrieval
