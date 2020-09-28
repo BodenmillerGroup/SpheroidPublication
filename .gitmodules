@@ -1,20 +1,20 @@
 [submodule "modules/oexp"]
 	path = subworkflows/oexp_preproc
-	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
+	url = https://github.com/BodenmillerGroup/SpheroidPublication.git
 	branch = oexp
 [submodule "modules/phys"]
 	path = subworkflows/phys_preproc
-	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
+	url = https://github.com/BodenmillerGroup/SpheroidPublication.git
 	branch = phys
 [submodule "modules/bf"]
 	path = subworkflows/bf_preproc
-	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
+	url = https://github.com/BodenmillerGroup/SpheroidPublication.git
 	branch = bf
 [submodule "analysis/phys"]
 	path = subworkflows/phys_analysis
-	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
+	url = https://github.com/BodenmillerGroup/SpheroidPublication.git
 	branch = master
 [submodule "subworkflows/oexp_analysis"]
 	path = subworkflows/oexp_analysis
-	url = git@github.com:BodenmillerGroup/SpheroidPublication.git
+	url = https://github.com/BodenmillerGroup/SpheroidPublication.git
 	branch = phys_analysis
