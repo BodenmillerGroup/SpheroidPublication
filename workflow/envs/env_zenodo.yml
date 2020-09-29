@@ -1,8 +1,0 @@
-name: env_zenodo
-channels:
-  - conda-forge
-dependencies:
-  - python=3.8
-  - pip
-  - pip:
-      - git+https://github.com/votti/zenodo_get.git@feature_sandbox
