@@ -2,6 +2,7 @@ name: spheroid_env
 channels:
   - conda-forge
   - bioconda
+  - votti
   - defaults
 dependencies:
   - anndata
@@ -23,7 +24,7 @@ dependencies:
   - matplotlib-scalebar
   - plotnine
   - simplegeneric
+  - spherpro
+  - pycytools
   - pip:
     - scikit-misc
-    - git+https://github.com/BodenmillerGroup/pycytools.git@master
-    - git+https://github.com/BodenmillerGroup/spherpro.git@develop
