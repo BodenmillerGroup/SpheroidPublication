@@ -10,8 +10,9 @@ localrules:
     get_bf_quantification,
 
 
-container_base = "docker://votti/miniconda3mamba:v0.4.2"
-
+container_zenodo = "docker://votti/spheroid_publication:zenodo_v1"
+container_spherpro = "docker://votti/spheroid_publication:spherpro_v1"
+container_rlmm = "docker://votti/spheroid_publication:rlmm_v1"
 
 # Define dependency on preprocessing workflows
 subworkflow oexp_preproc:
@@ -110,8 +111,8 @@ has_prep_oexpdata = fol_db / "overexpressiondata.done"
 has_de_analysis = fol_db / "deanalysis.done"
 
 # all preprocessing files needed:
-folder_preproc_cp = pathlib.Path("results")
-folder_preproc_cp = folder_preproc_cp / "cpout"
+folder_preproc_cp = pathlib.Path("results") / "cpout"
+folder_ome = pathlib.Path("results") / "ome"
 ## Define Output files
 fn_cpout_image = folder_preproc_cp / "Image.csv"
 fn_cpout_cell = folder_preproc_cp / "cell.csv"
@@ -167,7 +168,6 @@ rule get_panel:
         shutil.copy(input[0], output[0])
 
 
-# TODO: also link ome folder!
 rule get_cpout:
     input:
         cp_measurements_output_srt,
@@ -183,6 +183,21 @@ rule get_cpout:
             # to this workaround.
             cmd = f'rsync -rts "{s}" "{pathlib.Path(t).parent}"'
             subp.check_call(str(cmd), shell=True)
+
+
+rule get_ome:
+    input:
+        oexp_preproc("results/all_mcd_converted.done"),
+    output:
+        directory(folder_ome),
+    run:
+        folder_ome.mkdir(exist_ok=True)
+        # Somehow shutil copytree and co failed
+        # likely to to a NFS related error. Resorting
+        # to this workaround.
+        parent = pathlib.Path(input[0]).parent / "ome"
+        cmd = f'rsync -rts "{parent}" "{pathlib.Path(output[0]).parent}"'
+        subp.check_call(str(cmd), shell=True)
 
 
 rule get_bf_quantification:
@@ -218,8 +233,8 @@ rule extend_constructmeta:
         fn_masterplate_layout=fn_masterplate_layout,
     output:
         fn_construct_meta=fn_construct_meta,
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     log:
         notebook="logs/0_extend_constructmeta.py.ipynb",
     notebook:
@@ -231,8 +246,8 @@ rule prepare_layout:
         fn_masterplate_layout=fn_masterplate_layout,
     output:
         fn_plate_layout=fn_plate_layout,
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+             container_spherpro
     log:
         notebook="logs/0_prepare_layout.py.ipynb",
     notebook:
@@ -247,8 +262,9 @@ rule step2_init_database:
         fn_plate_layout=fn_plate_layout,
     output:
         fn_db,
-    conda:
-        "envs/spherpro_env.yml"
+    threads: 8
+    container:
+             container_spherpro
     threads: 8
     resources:
         mem="64G",
@@ -267,8 +283,8 @@ rule step3_1_preprocess_db:
         fns_cp=cp_measurements_output,
     output:
         touch(has_db_preprocessed),
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+             container_spherpro
     threads: 8
     resources:
         mem="32G",
@@ -288,8 +304,8 @@ rule step3_2_plot_manualqc_images:
         is_preprocessed=has_db_preprocessed,
     output:
         directory(fol_manual_qc_raw),
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 8
     resources:
         mem="32G",
@@ -331,8 +347,8 @@ rule step3_4_apply_manualqc_images:
         fn_manual_qc_dat=ancient(fn_manual_qc_dat),
     output:
         touch(has_db_manualqcapplied),
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 8
     resources:
         mem="32G",
@@ -353,8 +369,8 @@ rule step4_1_debarcode:
         is_manualqc=has_db_manualqcapplied,
     output:
         touch(has_db_debarcoded),
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 8
     resources:
         mem="16G",
@@ -373,8 +389,8 @@ rule step4_2_apply_bfqc:
         is_debarcoded=has_db_debarcoded,
     output:
         touch(has_db_bfqc),
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 2
     resources:
         mem="4G",
@@ -393,8 +409,8 @@ rule step4_3_correct2drim:
         is_debarcoded=has_db_bfqc,
     output:
         touch(has_db_d2rim),
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 2
     resources:
         mem="16G",
@@ -415,8 +431,8 @@ rule step5_identify_overexpression:
         touch(has_db_id_overexpression),
     params:
         fol_figures=fol_figures,
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 2
     resources:
         mem="16G",
@@ -437,8 +453,8 @@ rule step6_define_classes:
         touch(has_db_oexp_classes),
     params:
         fol_figures=fol_figures,
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 2
     resources:
         mem="16G",
@@ -459,8 +475,8 @@ rule step7_oexp_de:
         fn_lmdata=fn_lmdata,
     params:
         fol_figures=fol_figures,
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 2
     resources:
         mem="16G",
@@ -482,8 +498,8 @@ rule step7_calculate_de:
         fn_lmm_randeff=fn_lmm_randeff,
         fn_lmm_predict=fn_lmm_predict,
     threads: 2
-    conda:
-        "envs/rlmm_env.yml"
+    container:
+        container_rlmm
     resources:
         mem="8G",
         time="60",
@@ -511,8 +527,8 @@ rule step7_oexp_results:
         pat_lmm_absstat=lambda x: fn_lmm_absstat,
         pat_lmm_model=lambda x: fn_lmm_model,
         pat_lmm_randeff=lambda x: fn_lmm_randeff,
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 2
     resources:
         mem="16G",
@@ -533,8 +549,8 @@ rule step7_marker_var_vs_oexp:
         fol_plots=directory(fol_figures / "marker_vs_oexp"),
     params:
         fol_figures=fol_figures,
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 2
     resources:
         mem="16G",
@@ -555,8 +571,8 @@ rule step99_oexp_vs_nb:
         fol_plots=directory(fol_marker_vs_nb),
     params:
         fol_figures=fol_figures,
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 2
     resources:
         mem="16G",
@@ -577,8 +593,8 @@ rule step99_example_imgs:
         fol_plots=directory(fol_example_oexp),
     params:
         fol_figures=fol_figures,
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 2
     resources:
         mem="16G",
@@ -598,8 +614,8 @@ rule step99_frac_oexp:
         fol_plots=directory(fol_frac_oexp),
     params:
         fol_figures=fol_figures,
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 2
     resources:
         mem="16G",
@@ -619,8 +635,8 @@ rule step99_overview_statistics:
         fol_plots=directory(fol_overview_stats),
     params:
         fol_figures=fol_figures,
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 2
     resources:
         mem="16G",
