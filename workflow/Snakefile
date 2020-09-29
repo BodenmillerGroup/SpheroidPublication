@@ -3,13 +3,6 @@ import shutil
 import subprocess as subp
 import pandas as pd
 
-
-localrules:
-    get_cpout,
-    get_bf_qc,
-    get_bf_quantification,
-
-
 container_zenodo = "docker://votti/spheroid_publication:zenodo_v1"
 container_spherpro = "docker://votti/spheroid_publication:spherpro_v1"
 container_rlmm = "docker://votti/spheroid_publication:rlmm_v1"
@@ -23,15 +16,6 @@ subworkflow oexp_preproc:
 subworkflow bf_preproc:
     workdir: "../../bf_preproc"
     snakefile: "../../bf_preproc/workflow/Snakefile"
-
-
-def oexp_preproc(fn):
-    return str(pathlib.Path("../oexp_preproc") / fn)
-
-
-def bf_preproc(fn):
-    return str(pathlib.Path("../bf_preproc") / fn)
-
 
 subworkflow phys_analysis:
     workdir: "../../phys_analysis"
@@ -53,7 +37,6 @@ fn_plate_layout = fol_sp_config / "plate_layout.csv"
 
 
 fn_sp_config = fol_sp_config / "config.yml"
-
 fol_db = fol_results / "db"
 fn_db = ancient(fol_db / "spherpro.db")
 fol_manual_qc = fol_results / "manual_qc"
@@ -125,7 +108,7 @@ folder_cpout_imgs = folder_preproc_cp / "imgs"
 folder_cpout_masks = folder_preproc_cp / "masks"
 
 cp_measurements_output = [
-    fn
+    ancient(fn)
     for fn in (
         fn_cpout_objectrel,
         directory(folder_cpout_imgs),
@@ -284,7 +267,7 @@ rule step3_1_preprocess_db:
     output:
         touch(has_db_preprocessed),
     container:
-             container_spherpro
+        container_spherpro
     threads: 8
     resources:
         mem="32G",
