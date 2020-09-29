@@ -72,6 +72,7 @@ fn_cpout_nucleiexp = folder_preproc_cp / "nucleiexp.csv"
 fn_cpout_objectrel = folder_preproc_cp / "Object relationships.csv"
 folder_cpout_imgs = folder_preproc_cp / "imgs"
 folder_cpout_masks = folder_preproc_cp / "masks"
+
 cp_measurements_output = [
     ancient(fn)
     for fn in (
@@ -205,10 +206,10 @@ rule step3_1_preprocess_db:
 rule step3_2_plot_manualqc_images:
     input:
         fn_panel=fn_panel,
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         fns_cp=cp_measurements_output,
-         is_preprocessed=has_db_preprocessed,
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        fns_cp=cp_measurements_output,
+        is_preprocessed=has_db_preprocessed,
     output:
         directory(fol_manual_qc_raw),
     container:
@@ -248,11 +249,11 @@ rule step3_3_identify_manualqc_images:
 rule step3_4_apply_manualqc_images:
     input:
         fn_panel=fn_panel,
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         fns_cp=cp_measurements_output,
-         is_preprocessed=has_db_preprocessed,
-         fn_manual_qc_dat=ancient(fn_manual_qc_dat),
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        fns_cp=cp_measurements_output,
+        is_preprocessed=has_db_preprocessed,
+        fn_manual_qc_dat=ancient(fn_manual_qc_dat),
     output:
         touch(has_db_manualqcapplied),
     container:
@@ -270,11 +271,11 @@ rule step3_4_apply_manualqc_images:
 rule step4_1_debarcode:
     input:
         fn_panel=fn_panel,
-         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         fns_cp=cp_measurements_output,
-         is_preprocessed=has_db_preprocessed,
-         is_manualqc=has_db_manualqcapplied,
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        fns_cp=cp_measurements_output,
+        is_preprocessed=has_db_preprocessed,
+        is_manualqc=has_db_manualqcapplied,
     output:
         touch(has_db_debarcoded),
     container:
@@ -292,9 +293,9 @@ rule step4_1_debarcode:
 rule step4_2_apply_bfqc:
     input:
         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         fn_bf_qc=fn_bf_qc,
-         is_debarcoded=has_db_debarcoded,
+        fn_db=fn_db,
+        fn_bf_qc=fn_bf_qc,
+        is_debarcoded=has_db_debarcoded,
     output:
         touch(has_db_bfqc),
     container:
@@ -312,9 +313,9 @@ rule step4_2_apply_bfqc:
 rule step4_3_correct2drim:
     input:
         fn_config=fn_sp_config,
-         fn_db=fn_db,
-         fn_bf_quantification=fn_bf_quantification,
-         is_debarcoded=has_db_bfqc,
+        fn_db=fn_db,
+        fn_bf_quantification=fn_bf_quantification,
+        is_debarcoded=has_db_bfqc,
     output:
         touch(has_db_d2rim),
     container:
