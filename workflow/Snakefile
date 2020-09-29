@@ -608,7 +608,7 @@ rule retrieve_zenodo:
         'Retrieve data from zenodo: "{wildcards.zenodo_folder}"'
     output:
         touch(pat_zenodo_rep),
-    conda:
+    container:
         container_zenodo
     params:
         fol_out=str(folder_resources / "{zenodo_folder}"),
