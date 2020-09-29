@@ -6,7 +6,7 @@ WORKDIR ~
 # Run the command inside your image filesystem.
 RUN conda config --set always_yes yes --set changeps1 no
 RUN conda install -c conda-forge pip python=3.7 mamba=0.4.2
-RUN mamba -c conda-forge -c bioconda -c votti -c defaults \
+RUN mamba install -c conda-forge -c bioconda -c votti -c defaults \
    anndata \
    ipykernel \
    ipywidgets \

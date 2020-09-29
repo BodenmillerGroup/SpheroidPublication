@@ -6,5 +6,5 @@ WORKDIR ~
 # Run the command inside your image filesystem.
 RUN conda config --set always_yes yes --set changeps1 no
 RUN conda install -c conda-forge pip python=3.8 mamba=0.4.2
-RUN mamba -c conda-forge -c bioconda -c r r-lme4 r-lmertest r-tidyverse r-loomr \
+RUN mamba install -c conda-forge -c bioconda -c r r-lme4 r-lmertest r-tidyverse r-loomr \
         r-data.table
