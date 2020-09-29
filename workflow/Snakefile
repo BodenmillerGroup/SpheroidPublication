@@ -156,7 +156,7 @@ rule get_bf_quantification:
 
 rule get_bf_qc:
     input:
-        "resources/bfqc_manual_v1.csv",
+        "../bf_preproc/resources/bfqc_manual_v1.csv",
     output:
         fn_bf_qc,
     shell:
