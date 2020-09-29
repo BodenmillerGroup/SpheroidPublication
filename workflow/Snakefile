@@ -10,10 +10,10 @@ include: "rules/cellprofiler.smk"
 include: "rules/ilastik.smk"
 
 
-container: "docker://votti/miniconda3mamba:mamba0.3.0"
-
-
-container_imctools = "docker://votti/imctools:v1.0.7"
+container_imctools = "docker://votti/spheroid_publication:imctools_v1"
+container_zenodo = "docker://votti/spheroid_publication:zenodo_v1"
+container_alignment = "docker://votti/spheroid_publication:alignment_v1"
+container_catalyst = "docker://votti/spheroid_publication:catalyst_v1"
 
 
 # Read Configuration
@@ -471,7 +471,7 @@ rule alignment_get_ifslide_imcslide_transf:
     output:
         fn_transf_ifslide_imcslide=AlignmentConf.fn_transf_ifslide_imcslide,
     container:
-        "docker://votti/alignment:v1.9"
+        container_alignment
     log:
         notebook="logs/alignment/0_inital_coord_matching.py.ipynb",
     notebook:
@@ -507,7 +507,7 @@ rule alignment_prepare_data:
         re_crop=AlignmentConf.re_crop,
         fn_crop_glob=AlignmentConf.fn_crop_glob,
     container:
-        "docker://votti/alignment:v1.9"
+        container_alignment
     log:
         notebook="logs/alignment/1_prepare_data.py.ipynb",
     threads: 4
@@ -543,7 +543,7 @@ checkpoint alignment_align_imgs:
     params:
         channel_slide=AlignmentConf.channel_slide,
     container:
-        "docker://votti/alignment:v1.9"
+        container_alignment
     log:
         notebook="logs/alignment/2_run_trakem2_align.py.ipynb",
     threads: 8
@@ -671,7 +671,7 @@ rule retrieve_zenodo:
     output:
         touch(pat_zenodo_rep),
     conda:
-        "envs/env_zenodo.yml"
+        container_zenodo
     params:
         fol_out=str(folder_resources / "{zenodo_folder}"),
     shell:
@@ -783,7 +783,7 @@ rule compensation_prepare_sm:
     output:
         fn_sm_mat,
     container:
-        "docker://votti/catalyst:v1.10"
+        container_catalyst
     resources:
         mem="8G",
     log:
@@ -804,7 +804,7 @@ rule compensation_adapt_sm:
     params:
         re_fns_full=".*_full_l[0-9]+_x[0-9]+_y[0-9]+\.tiff",
     container:
-        "docker://votti/catalyst:v1.10"
+        container_catalyst
     log:
         notebook="logs/compensation/imc_adaptsm.r.ipynb",
     notebook:
