@@ -5,11 +5,8 @@ import shutil
 import subprocess as subp
 import pandas as pd
 
-from snakemake.utils import validate
-
-# Global conda container
-container_base = "docker://votti/miniconda3mamba:v0.4.2"
-
+container_zenodo = "docker://votti/spheroid_publication:zenodo_v1"
+container_spherpro = "docker://votti/spheroid_publication:spherpro_v1"
 
 # Define dependency on preprocessing workflows
 subworkflow phys_preproc:
@@ -55,12 +52,12 @@ fol_figures_apoptosis = fol_figures / "apoptosis_imgs"
 fol_figures_umap = fol_figures / "umap_analysis"
 
 # Preprocessing indicators
-fn_db_preprocessed = fol_db / "dbpreprocess.done"
-fn_db_manualqcapplied = fol_db / "manualqcapplied.done"
-fn_db_debarcoded = fol_db / "debarcoded.done"
-fn_db_bfqc = fol_db / "bfqcapplied.done"
-fn_db_d2rim = fol_db / "d2rimapplied.done"
-fn_db_cellclass = fol_db / "cellsclassified.done"
+has_db_preprocessed = fol_db / "dbpreprocess.done"
+has_db_manualqcapplied = fol_db / "manualqcapplied.done"
+has_db_debarcoded = fol_db / "debarcoded.done"
+has_db_bfqc = fol_db / "bfqcapplied.done"
+has_db_d2rim = fol_db / "d2rimapplied.done"
+has_db_cellclass = fol_db / "cellsclassified.done"
 
 # all preprocessing files needed:
 folder_preproc_cp = pathlib.Path("results") / "cpout"
@@ -99,14 +96,14 @@ cp_measurements_output_srt = [
 rule all:
     input:
         fn_panel,
-        fn_db,
-        fn_db_d2rim,
-        fol_figures_marker_relationship,
-        fol_figures_optimal_ord,
-        fol_figures_cellline_heatmap,
-        fol_figures_d2rim,
-        fol_figures_apoptosis,
-        fol_figures_umap,
+         fn_db,
+         has_db_d2rim,
+         fol_figures_marker_relationship,
+         fol_figures_optimal_ord,
+         fol_figures_cellline_heatmap,
+         fol_figures_d2rim,
+         fol_figures_apoptosis,
+         fol_figures_umap,
 
 
 rule get_panel:
@@ -159,7 +156,7 @@ rule get_bf_quantification:
 
 rule get_bf_qc:
     input:
-        "../bf_preproc/resources/bfqc_manual_v1.csv",
+        bf_preproc("resources/bfqc_manual_v1.csv"),
     output:
         fn_bf_qc,
     shell:
@@ -173,10 +170,8 @@ rule step2_init_database:
         fns_cp=cp_measurements_output,
     output:
         fn_db,
-    conda:
-        "envs/spherpro_env.yml"
     container:
-        container_base
+             container_spherpro
     threads: 8
     resources:
         mem="32G",
@@ -194,11 +189,9 @@ rule step3_1_preprocess_db:
         fn_db=fn_db,
         fns_cp=cp_measurements_output,
     output:
-        touch(fn_db_preprocessed),
-    conda:
-        "envs/spherpro_env.yml"
+        touch(has_db_preprocessed),
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="32G",
@@ -212,16 +205,14 @@ rule step3_1_preprocess_db:
 rule step3_2_plot_manualqc_images:
     input:
         fn_panel=fn_panel,
-        fn_config=fn_sp_config,
-        fn_db=fn_db,
-        fns_cp=cp_measurements_output,
-        is_preprocessed=fn_db_preprocessed,
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fns_cp=cp_measurements_output,
+         is_preprocessed=has_db_preprocessed,
     output:
         directory(fol_manual_qc_raw),
-    conda:
-        "envs/spherpro_env.yml"
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="32G",
@@ -235,17 +226,15 @@ rule step3_2_plot_manualqc_images:
 rule step3_3_identify_manualqc_images:
     input:
         fn_panel=fn_panel,
-        fn_config=fn_sp_config,
-        fn_db=fn_db,
-        fns_cp=cp_measurements_output,
-        is_preprocessed=fn_db_preprocessed,
-        fol_manual_qc_raw=fol_manual_qc_raw,
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fns_cp=cp_measurements_output,
+         is_preprocessed=has_db_preprocessed,
+         fol_manual_qc_raw=fol_manual_qc_raw,
     params:
         fn_manual_qc_dat,
-    conda:
-        "envs/spherpro_env.yml"
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="32G",
@@ -259,17 +248,15 @@ rule step3_3_identify_manualqc_images:
 rule step3_4_apply_manualqc_images:
     input:
         fn_panel=fn_panel,
-        fn_config=fn_sp_config,
-        fn_db=fn_db,
-        fns_cp=cp_measurements_output,
-        is_preprocessed=fn_db_preprocessed,
-        fn_manual_qc_dat=ancient(fn_manual_qc_dat),
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fns_cp=cp_measurements_output,
+         is_preprocessed=has_db_preprocessed,
+         fn_manual_qc_dat=ancient(fn_manual_qc_dat),
     output:
-        touch(fn_db_manualqcapplied),
-    conda:
-        "envs/spherpro_env.yml"
+        touch(has_db_manualqcapplied),
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="32G",
@@ -283,17 +270,15 @@ rule step3_4_apply_manualqc_images:
 rule step4_1_debarcode:
     input:
         fn_panel=fn_panel,
-        fn_config=fn_sp_config,
-        fn_db=fn_db,
-        fns_cp=cp_measurements_output,
-        is_preprocessed=fn_db_preprocessed,
-        is_manualqc=fn_db_manualqcapplied,
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fns_cp=cp_measurements_output,
+         is_preprocessed=has_db_preprocessed,
+         is_manualqc=has_db_manualqcapplied,
     output:
-        touch(fn_db_debarcoded),
-    conda:
-        "envs/spherpro_env.yml"
+        touch(has_db_debarcoded),
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="32G",
@@ -307,15 +292,13 @@ rule step4_1_debarcode:
 rule step4_2_apply_bfqc:
     input:
         fn_config=fn_sp_config,
-        fn_db=fn_db,
-        fn_bf_qc=fn_bf_qc,
-        is_debarcoded=fn_db_debarcoded,
+         fn_db=fn_db,
+         fn_bf_qc=fn_bf_qc,
+         is_debarcoded=has_db_debarcoded,
     output:
-        touch(fn_db_bfqc),
-    conda:
-        "envs/spherpro_env.yml"
+        touch(has_db_bfqc),
     container:
-        container_base
+        container_spherpro
     threads: 2
     resources:
         mem="4G",
@@ -329,15 +312,13 @@ rule step4_2_apply_bfqc:
 rule step4_3_correct2drim:
     input:
         fn_config=fn_sp_config,
-        fn_db=fn_db,
-        fn_bf_quantification=fn_bf_quantification,
-        is_debarcoded=fn_db_bfqc,
+         fn_db=fn_db,
+         fn_bf_quantification=fn_bf_quantification,
+         is_debarcoded=has_db_bfqc,
     output:
-        touch(fn_db_d2rim),
-    conda:
-        "envs/spherpro_env.yml"
+        touch(has_db_d2rim),
     container:
-        container_base
+        container_spherpro
     threads: 2
     resources:
         mem="16G",
@@ -351,14 +332,12 @@ rule step4_3_correct2drim:
 rule step4_4_add_cellstate_class:
     input:
         fn_config=fn_sp_config,
-        fn_db=fn_db,
-        is_d2rim=fn_db_d2rim,
+         fn_db=fn_db,
+         is_d2rim=has_db_d2rim,
     output:
-        touch(fn_db_cellclass),
-    conda:
-        "envs/spherpro_env.yml"
+        touch(has_db_cellclass),
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="64G",
@@ -402,14 +381,12 @@ fn_modstats = str(fol_modstats / "dat_mod_{res_types}_perrep{rep}.csv")
 rule fit_marker_relations:
     input:
         fn_config=fn_sp_config,
-        is_preproc=fn_db_d2rim,
+         is_preproc=has_db_d2rim,
     output:
         fn_out_stats=expand(fn_modstats_run, res_types="stats", allow_missing=True),
         fn_out_params=expand(fn_modstats_run, res_types="params", allow_missing=True),
-    conda:
-        "envs/spherpro_env.yml"
     container:
-        container_base
+        container_spherpro
     threads: 2
     resources:
         mem="8G",
@@ -440,12 +417,12 @@ rule combine_marker_relations_stats:
 rule step6_results_marker_relations:
     input:
         fn_config=fn_sp_config,
-        is_preproc=fn_db_d2rim,
-        fn_modstats=expand(fn_modstats, res_types="stats", rep=0)[0],
-        fn_modstats_perrep=expand(fn_modstats, res_types="stats", rep=1)[0],
-        fn_modstats_params=expand(fn_modstats, res_types="params", rep=0)[0],
-        fn_panel_ord=fol_resources / "pannel_ordered.csv",
-        fn_bf_quantification=fn_bf_quantification,
+         is_preproc=has_db_d2rim,
+         fn_modstats=expand(fn_modstats, res_types="stats", rep=0)[0],
+         fn_modstats_perrep=expand(fn_modstats, res_types="stats", rep=1)[0],
+         fn_modstats_params=expand(fn_modstats, res_types="params", rep=0)[0],
+         fn_panel_ord=fol_resources / "pannel_ordered.csv",
+         fn_bf_quantification=fn_bf_quantification,
     params:
         all_conds=all_conds,
         main_conds=main_conds,
@@ -456,10 +433,8 @@ rule step6_results_marker_relations:
             fol_figures / "fig3_example_submodels.png",
             caption="report/example_submodels.rst",
         ),
-    conda:
-        "envs/spherpro_env.yml"
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="8G",
@@ -473,22 +448,20 @@ rule step6_results_marker_relations:
 rule step6_celline_heatmap:
     input:
         fn_config=fn_sp_config,
-        is_preproc=fn_db_d2rim,
-        fn_modstats=expand(fn_modstats, res_types="stats", rep=0)[0],
-        fn_modstats_perrep=expand(fn_modstats, res_types="stats", rep=1)[0],
-        fn_modstats_params=expand(fn_modstats, res_types="params", rep=0)[0],
-        fn_panel_ord=fol_resources / "pannel_ordered.csv",
-        fn_bf_quantification=fn_bf_quantification,
+         is_preproc=has_db_d2rim,
+         fn_modstats=expand(fn_modstats, res_types="stats", rep=0)[0],
+         fn_modstats_perrep=expand(fn_modstats, res_types="stats", rep=1)[0],
+         fn_modstats_params=expand(fn_modstats, res_types="params", rep=0)[0],
+         fn_panel_ord=fol_resources / "pannel_ordered.csv",
+         fn_bf_quantification=fn_bf_quantification,
     params:
         all_conds=all_conds,
         main_conds=main_conds,
         celllines=exp_celllines,
     output:
         fol_out=directory(fol_figures_cellline_heatmap),
-    conda:
-        "envs/spherpro_env.yml"
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="8G",
@@ -502,22 +475,20 @@ rule step6_celline_heatmap:
 rule step6_optimal_ord:
     input:
         fn_config=fn_sp_config,
-        is_preproc=fn_db_d2rim,
-        fn_modstats=expand(fn_modstats, res_types="stats", rep=0)[0],
-        fn_modstats_perrep=expand(fn_modstats, res_types="stats", rep=1)[0],
-        fn_modstats_params=expand(fn_modstats, res_types="params", rep=0)[0],
-        fn_panel_ord=fol_resources / "pannel_ordered.csv",
-        fn_bf_quantification=fn_bf_quantification,
+         is_preproc=has_db_d2rim,
+         fn_modstats=expand(fn_modstats, res_types="stats", rep=0)[0],
+         fn_modstats_perrep=expand(fn_modstats, res_types="stats", rep=1)[0],
+         fn_modstats_params=expand(fn_modstats, res_types="params", rep=0)[0],
+         fn_panel_ord=fol_resources / "pannel_ordered.csv",
+         fn_bf_quantification=fn_bf_quantification,
     params:
         all_conds=all_conds,
         main_conds=main_conds,
         celllines=exp_celllines,
     output:
         fol_out=directory(fol_figures_optimal_ord),
-    conda:
-        "envs/spherpro_env.yml"
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="8G",
@@ -533,11 +504,9 @@ rule visualize_qc:
     input:
         fn_config=fn_sp_config,
         fn_db=fn_db,
-        is_d2rim=fn_db_d2rim,
-    conda:
-        "envs/spherpro_env.yml"
+        is_d2rim=has_db_d2rim,
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="32G",
@@ -551,13 +520,11 @@ rule visualize_qc:
 rule site_overviews:
     input:
         fn_config=fn_sp_config,
-        fn_db=fn_db,
-        is_d2rim=fn_db_d2rim,
-        fol_ome=folder_ome,
-    conda:
-        "envs/spherpro_env.yml"
+         fn_db=fn_db,
+         is_d2rim=has_db_d2rim,
+         fol_ome=folder_ome,
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="32G",
@@ -571,15 +538,13 @@ rule site_overviews:
 rule step99_umap_analysis:
     input:
         fn_config=fn_sp_config,
-        fn_db=fn_db,
-        is_cc=fn_db_cellclass,
-        fn_panel_ord=fol_resources / "pannel_ordered.csv",
+         fn_db=fn_db,
+         is_cc=has_db_cellclass,
+         fn_panel_ord=fol_resources / "pannel_ordered.csv",
     output:
         fol_plots=directory(fol_figures_umap),
-    conda:
-        "envs/spherpro_env.yml"
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="32G",
@@ -593,14 +558,14 @@ rule step99_umap_analysis:
 rule step99_overview_statistics:
     input:
         fn_config=fn_sp_config,
-        fn_db=fn_db,
-        has_d2rim=fn_db_d2rim,
+         fn_db=fn_db,
+         has_d2rim=has_db_d2rim,
     output:
         fol_plots=directory(fol_overview_stats),
     params:
         fol_figures=fol_figures,
-    conda:
-        "envs/spherpro_env.yml"
+    container:
+        container_spherpro
     threads: 2
     resources:
         mem="16G",
@@ -614,15 +579,13 @@ rule step99_overview_statistics:
 rule step99_apoptosis_imgs:
     input:
         fn_config=fn_sp_config,
-        fn_db=fn_db,
-        is_cc=fn_db_cellclass,
-        fn_panel_ord=fol_resources / "pannel_ordered.csv",
+         fn_db=fn_db,
+         is_cc=has_db_cellclass,
+         fn_panel_ord=fol_resources / "pannel_ordered.csv",
     output:
         fol_out=directory(fol_figures_apoptosis),
-    conda:
-        "envs/spherpro_env.yml"
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="8G",
@@ -636,14 +599,12 @@ rule step99_apoptosis_imgs:
 rule step99_d2rim_imgs:
     input:
         fn_config=fn_sp_config,
-        fn_db=fn_db,
-        has_d2rim=fn_db_d2rim,
+         fn_db=fn_db,
+         has_d2rim=has_db_d2rim,
     output:
         fol_out=directory(fol_figures_d2rim),
-    conda:
-        "envs/spherpro_env.yml"
     container:
-        container_base
+        container_spherpro
     threads: 8
     resources:
         mem="8G",
