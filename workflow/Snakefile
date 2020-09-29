@@ -5,8 +5,9 @@ import pathlib
 import pandas as pd
 from snakemake.io import expand, glob_wildcards
 
-# Global conda container
-base_container = "docker://votti/miniconda3mamba:mamba0.3.0"
+# General containers
+container_bf = "docker://votti/spheroid_publication:bfpreproc_v1"
+container_zenodo = "docker://votti/spheroid_publication:zenodo_v1"
 
 
 # Ilastik configuration
@@ -230,8 +231,8 @@ rule retrieve_zenodo:
         'Download files "{wildcards.zenodo_folder}" from Zenodo.'
     output:
         touch(pat_zenodo_rep),
-    conda:
-        "envs/env_zenodo.yml"
+    container:
+        container_zenodo
     params:
         fol_out=str(folder_resources / "{zenodo_folder}"),
     shell:
@@ -364,10 +365,8 @@ rule nb_sphere_size:
         fol_wellov=directory(folder_wellov),
         fn_hqspheres=fn_hqspheres,
         fn_fig1_bfspheres=fn_fig1_bfspheres,
-    conda:
-        "envs/bf.yml"
     container:
-        base_container
+        container_bf
     threads: 8
     resources:
         mem="32G",
