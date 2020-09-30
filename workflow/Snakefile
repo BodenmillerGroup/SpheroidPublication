@@ -158,6 +158,7 @@ rule get_cpout:
         cp_measurements_output,
     resources:
         mem="32G",
+        time='60'
     run:
         folder_preproc_cp.mkdir(exist_ok=True)
         for s, t in zip(input, output):
