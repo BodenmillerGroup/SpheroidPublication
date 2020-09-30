@@ -27,5 +27,6 @@ RUN mamba install -c conda-forge -c bioconda -c votti -c defaults \
    plotnine \
    simplegeneric \
    spherpro \
-   pycytools
+   pycytools \
+   loompy
 RUN python3.7 -m pip install scikit-misc
