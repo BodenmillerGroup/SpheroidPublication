@@ -10,7 +10,7 @@ Tube Number,metal,Target,is_cc,spill,full,ilastik,sphereseg,working,looks workin
 994,Er170,SAPK/JNK,0,1,1,0,0,1,0.5,0.5,"some single cells, but not clear if these are unspecific binding ones",p-JNK [T183/Y185],G9,300,5 ug/mL,23.3333333333333
 487,Eu151,EGFR,0,1,1,0,0,1,0.5,0.5,"not clear, diffuse",p-EGFR [Tyr1173],3G3.2,200,5 ug/mL,35
 1602,Eu153,Histone H3,1,1,1,1,0,1,1,1,single cells,p-HH3 [S28],HTA28,5,0.05 ug/mL,14
-1049,Gd155,c-erbB-2 - Her2,0,1,1,1,0,0,0.5,0.5,"sometimes rather memb, sometimes rather nuclear",p-Her2 [Y1196],D66B7,200,5 ug/mL,35
+1049,Gd155,c-erbB-2 - Her2,0,1,1,1,0,1,0.5,0.5,"sometimes rather memb, sometimes rather nuclear",p-Her2 [Y1196],D66B7,200,5 ug/mL,35
 1550,Gd156,p38 MAPK (pT180/pY182),0,1,1,1,0,1,0.5,0.5,"sigle cells, maybe",p-p38 [T180/Y182],36/p38 (pT180/pY182),500,5 ug/mL,14
 868,Gd158,Gsk3,0,1,1,1,0,1,1,1,"cell line specific, memb",p-Gsk3 [S9],D85E12,200,5 ug/mL,35
 754,Gd160,Survivin,0,1,1,1,1,1,1,1,nice nuclear,Survivin,71G4B7,200,5 ug/mL,35
