@@ -35,7 +35,7 @@ cp_plugins = "resources/cp_plugins/ImcPluginsCP/plugins"
 Contains the repository ID on Zenodo of the data
 used in this pipeline.
 """
-input_zenodo_bf_repositories = [655990, 655992, 655994, 655996]
+input_zenodo_bf_repositories = [3991929, 3991931, 3991925, 3991927]
 
 ####################################################################
 #### Input/output folder structure
@@ -237,7 +237,7 @@ rule retrieve_zenodo:
         fol_out=str(folder_resources / "{zenodo_folder}"),
     shell:
         """cd {params.fol_out}
-        python -m zenodo_get  --sandbox {wildcards.zenodo_id}"""
+        python -m zenodo_get {wildcards.zenodo_id}"""
 
 
 checkpoint all_zenodo_bfzips:
