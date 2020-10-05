@@ -3,15 +3,15 @@ cellprofiler_container: 'docker://votti/cellprofiler:3.1.8'
 ilastik_container: 'docker://votti/ilastik:1.3.2b3'
 
 input_zenodo_imc_repositories:
-  - 656401
-  - 656403
+  - 3991933
+  - 3991935
 
 input_zenodo_slidescan_repositories:
-  - 655982
-  - 655984
+  - 3991917
+  - 3991919
 
 input_zenodo_varia_repositories:
-  - 656007
+  - 3991947
 
 input_data_folders:
   - 'resources/zips'

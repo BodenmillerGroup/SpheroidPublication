@@ -676,7 +676,7 @@ rule retrieve_zenodo:
         fol_out=str(folder_resources / "{zenodo_folder}"),
     shell:
         """cd {params.fol_out}
-        python -m zenodo_get  --sandbox {wildcards.zenodo_id}"""
+        python -m zenodo_get {wildcards.zenodo_id}"""
 
 
 # MCD to ome conversion
