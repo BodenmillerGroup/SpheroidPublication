@@ -1,10 +1,12 @@
-.PHONY: run_all, run_all_slurm
+.PHONY: run_all, run_all_slurm, prepare_envs
 
 SNAKEMAKE_OPTS_SLURM = --profile slurm --use-singularity --singularity-args '\-u' --jobs 500 \
 		--use-conda --conda-frontend mamba
 
 SNAKEMAKE_OPTS = --use-conda --conda-frontend mamba  --use-singularity --singularity-args '\-u'\
 	 	--cores 16
+SNAKEMAKE_PREPARE =  --use-conda --use-singularity --singularity-args '\-u'\
+	 	--cores 16 --conda-create-envs-only
 SNAKEMAKE_BIN = snakemake
 
 
@@ -21,3 +23,10 @@ run_all_slurm:
 	cd subworkflows/oexp_preproc && $(SNAKEMAKE_BIN) $(SNAKEMAKE_OPTS_SLURM)
 	cd subworkflows/phys_analysis && $(SNAKEMAKE_BIN) $(SNAKEMAKE_OPTS_SLURM)
 	cd subworkflows/oexp_analysis && $(SNAKEMAKE_BIN) $(SNAKEMAKE_OPTS_SLURM)
+
+prepare_envs:
+	cd subworkflows/bf_preproc && $(SNAKEMAKE_BIN) $(SNAKEMAKE_PREPARE)
+	cd subworkflows/phys_preproc && $(SNAKEMAKE_BIN) $(SNAKEMAKE_PREPARE)
+	cd subworkflows/oexp_preproc && $(SNAKEMAKE_BIN) $(SNAKEMAKE_PREPARE)
+	cd subworkflows/phys_analysis && $(SNAKEMAKE_BIN) $(SNAKEMAKE_PREPARE)
+	cd subworkflows/oexp_analysis && $(SNAKEMAKE_BIN) $(SNAKEMAKE_PREPARE)
