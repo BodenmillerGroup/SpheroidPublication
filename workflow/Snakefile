@@ -484,6 +484,7 @@ rule alignment_prepare_data:
         fol_crop=AlignmentConf.fol_crop,
         fol_slide=AlignmentConf.fol_slide,
         fol_cp_full=AlignmentConf.fol_cp_full,
+        has_all_slidescan=all_has_zenodo_slidescan_repositories
     output:
         fol_out_imgs=directory(AlignmentConf.fol_out_imgs),
         fn_cords=AlignmentConf.fn_cords,
