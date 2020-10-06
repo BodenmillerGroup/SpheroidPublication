@@ -7,7 +7,7 @@ input_zenodo_imc_repositories:
   - 3991935
 
 input_zenodo_slidescan_repositories:
-  - 3991917
+  - 4066430
   - 3991919
 
 input_zenodo_varia_repositories:
