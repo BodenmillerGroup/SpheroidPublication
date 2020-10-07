@@ -4,11 +4,14 @@ It allows to run all analysis steps from raw data until the paper figures for th
 "A quantitative analysis of the interplay of environment, neighborhood and cell state in 3D spheroids"  
 https://doi.org/10.1101/2020.07.24.219659 
 
-# Installation:
-This workflow requires `snakemake` (https://snakemake.readthedocs.io/en/stable/getting_started/installation.html, > 5.18) 
-as well as `singularity` (https://sylabs.io/guides/3.6/user-guide/quick_start.html#quick-installation-steps) to be installed.
+After running this, you can find plots used for figures in the `results/figures` directories of the subworkflows.  
+The run `Jupyter` analysis notebooks can be found in the `logs/` directories.
 
-It has only been tested on Ubuntu.
+# Installation:
+This workflow requires `snakemake` (tested: v5.18, https://snakemake.readthedocs.io/en/stable/getting_started/installation.html, > 5.18) 
+as well as `singularity` (tested: v3.2.1, https://sylabs.io/guides/3.6/user-guide/quick_start.html#quick-installation-steps) to be installed.
+
+It has only been tested on Ubuntu 18.04.
 
 While the workflow can be run locally (>=8 cores, >32 RAM required), it is best run in a cluster environment
 (e.g. SLURM, https://github.com/Snakemake-Profiles/slurm).
@@ -20,7 +23,18 @@ To retrieve the repository use:
 Due to technical problems with snakemake subworkflows, the subworkflows need to be run independently in the order
 described bellow, as otherwise the workflows will be run only single-threaded: https://github.com/snakemake/snakemake/issues/208
 
-To run a subworkflow:
+To run all subworkflows on a local machine you can use:
+
+`make run_all`
+
+to run them all in the correct order.
+
+If you use a `slurm` cluster, it is required to setup a profile for snakemake (https://github.com/Snakemake-Profiles/slurm).
+
+Then one could run all of them as `make run_all_slurm`.
+
+
+If you want to run subworkflows manually:
 - Change into it's main directory: e.g. `cd subworkflows/bf_preproc`
 - Run snakemake with `conda` and `singularity` support: `snakemake --use-conda --use-singularity`
 
