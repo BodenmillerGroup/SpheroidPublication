@@ -2,12 +2,12 @@
 
 ADD_SINGULARITY_ARGS = #--singularity-args '\-u'
 N_JOBS = 500
-N_CORES = 16
+N_CORES = --cores 16
 SNAKEMAKE_OPTS_SLURM = --profile slurm --use-singularity  --jobs $(N_JOBS) $(ADD_SINGULARITY_ARGS) \
 		--use-conda --conda-frontend mamba
 
 SNAKEMAKE_OPTS = --use-conda --conda-frontend mamba  --use-singularity $(ADD_SINGULARITY_ARGS)\
-	 	--cores $(N_CORES)
+	 	$(N_CORES)
 
 SNAKEMAKE_PREPARE =  --use-conda --use-singularity \
 	 	$(N_CORES) --conda-create-envs-only
