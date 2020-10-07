@@ -20,6 +20,10 @@ To retrieve the repository use:
 
 `git clone --recurse-submodules https://github.com/BodenmillerGroup/SpheroidPublication.git`
 
+A compressed version of the cloned repository also containing the Singularity containers will
+be also uploaded to Zenodo (DOI: 10.5281/zenodo.4055781). Use this repository in case that the Docker container
+are not longer available from DockerHub.
+
 Due to technical problems with snakemake subworkflows, the subworkflows need to be run independently in the order
 described bellow, as otherwise the workflows will be run only single-threaded: https://github.com/snakemake/snakemake/issues/208
 
