@@ -92,6 +92,9 @@ cp_measurements_output_srt = [
     ancient(phys_preproc(str(fn))) for fn in cp_measurements_output
 ]
 
+# Export
+folder_export = fol_results / 'export'
+fn_export_phys_analysis = fol_results / 'phys_analysis_export_v1.zip'
 
 # Target rules
 rule all:
@@ -615,6 +618,23 @@ rule step99_d2rim_imgs:
     notebook:
         "notebooks/99_dist2drim_plots.py.ipynb"
 
+rule step99_export_data:
+    input:
+        fn_config=fn_sp_config,
+        fn_db=fn_db,
+        fol_cp=folder_preproc_cp,
+        has_d2rim=has_db_d2rim
+    output:
+        fol_export=directory(folder_export)
+    container:
+             container_spherpro
+    resources:
+             mem="8G",
+             time="60",
+    log:
+        notebook="logs/99_export_data.py.ipynb"
+    notebook:
+        "notebooks/99_export_data.py.ipynb"
 
 # Varia
 fol_local = pathlib.Path("/mnt/scratch/vitoz/Git/SpheroidPublication")
