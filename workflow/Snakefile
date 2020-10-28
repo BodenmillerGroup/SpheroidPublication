@@ -636,6 +636,28 @@ rule step99_export_data:
     notebook:
         "notebooks/99_export_data.py.ipynb"
 
+rule step99_zip_export_data:
+    input:
+        folder_export
+    output:
+        fn_export_phys_analysis
+    shell:
+        'zip -r {output[0]} {input[0]}'
+
+
+
+rule step99_browse_export_data:
+    input:
+         fol_export=folder_export
+    container:
+             container_spherpro
+    resources:
+             mem="8G",
+             time="60",
+    log:
+       notebook="logs/99_browse_export_data.py.ipynb"
+    notebook:
+            "notebooks/99_browse_export_data.py.ipynb"
 # Varia
 fol_local = pathlib.Path("/mnt/scratch/vitoz/Git/SpheroidPublication")
 fol_cluster = pathlib.Path(
