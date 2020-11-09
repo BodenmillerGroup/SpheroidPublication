@@ -641,8 +641,10 @@ rule step99_zip_export_data:
         folder_export
     output:
         fn_export_phys_analysis
+    params:
+        abs_input = fn_export_phys_analysis.absolute()
     shell:
-        'zip -r {output[0]} {input[0]}/*'
+        'cd {input[0]}; zip -r {params.abs_input} *'
 
 
 
