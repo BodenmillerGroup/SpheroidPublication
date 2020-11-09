@@ -642,7 +642,7 @@ rule step99_zip_export_data:
     output:
         fn_export_phys_analysis
     shell:
-        'zip -r {output[0]} {input[0]}'
+        'zip -r {output[0]} {input[0]}/*'
 
 
 
