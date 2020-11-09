@@ -140,6 +140,7 @@ rule all:
         fol_figures_oexp_de_results,
         fol_marker_vs_nb,
         fol_figures_oexp_de_results,
+        fol_example_oexp
 
 
 rule get_panel:
