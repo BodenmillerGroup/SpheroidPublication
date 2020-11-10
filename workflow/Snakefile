@@ -130,6 +130,10 @@ fn_phys_analysis_modstats = "resources/phys_analysis_dat_mod_stats_perrep0.csv"
 fn_sigstats = fol_results / "dat_issig.csv"
 
 
+# Export
+folder_export = fol_results / 'export'
+fn_export_oexp_analysis = fol_results / 'oexp_analysis_export_v1.zip'
+
 # Target rules
 rule all:
     input:
@@ -140,7 +144,8 @@ rule all:
         fol_figures_oexp_de_results,
         fol_marker_vs_nb,
         fol_figures_oexp_de_results,
-        fol_example_oexp
+        fol_example_oexp,
+        fn_export_oexp_analysis
 
 
 rule get_panel:
@@ -632,6 +637,49 @@ rule step99_overview_statistics:
         "notebooks/99_overview_statistics.py.ipynb"
 
 
+rule step99_export_data:
+    input:
+         fn_config=fn_sp_config,
+         fn_db=fn_db,
+         fol_cp=folder_preproc_cp,
+         has_d2rim=has_db_d2rim,
+         has_db_oexp_classes=has_db_oexp_classes
+    output:
+          fol_export=directory(folder_export)
+    container:
+             container_spherpro
+    resources:
+             mem="8G",
+             time="180",
+    log:
+       notebook="logs/99_export_data.py.ipynb"
+    notebook:
+            "notebooks/99_export_data.py.ipynb"
+
+rule step99_zip_export_data:
+    input:
+         folder_export
+    output:
+          fn_export_oexp_analysis
+    params:
+          abs_input = fn_export_oexp_analysis.absolute()
+    shell:
+         'cd {input[0]}; zip -r {params.abs_input} *'
+
+
+
+rule step99_browse_export_data:
+    input:
+         fol_export=folder_export
+    container:
+             container_spherpro
+    resources:
+             mem="8G",
+             time="60",
+    log:
+       notebook="logs/99_browse_export_data.py.ipynb"
+    notebook:
+            "notebooks/99_browse_export_data.py.ipynb"
 # Varia
 
 fol_local = pathlib.Path("/mnt/scratch/vitoz/Git/SpheroidPublication")
