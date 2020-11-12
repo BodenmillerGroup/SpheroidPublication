@@ -94,7 +94,7 @@ cp_measurements_output_srt = [
 
 # Export
 folder_export = fol_results / 'export'
-fn_export_phys_analysis = fol_results / 'phys_analysis_export_v1.zip'
+fn_export_phys_analysis = fol_results / 'phys_analysis_export_v3.zip'
 
 # Target rules
 rule all:
@@ -108,6 +108,7 @@ rule all:
          fol_figures_d2rim,
          fol_figures_apoptosis,
          fol_figures_umap,
+        fn_export_phys_analysis
 
 
 rule get_panel:
