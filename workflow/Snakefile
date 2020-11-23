@@ -663,6 +663,8 @@ rule step99_zip_export_data:
           fn_export_oexp_analysis
     params:
           abs_input = fn_export_oexp_analysis.absolute()
+    resources:
+            time="120"
     shell:
          'cd {input[0]}; zip -r {params.abs_input} *'
 
