@@ -7,6 +7,24 @@ https://doi.org/10.1101/2020.07.24.219659
 After running this, you can find plots used for figures in the `results/figures` directories of the subworkflows.  
 The run `Jupyter` analysis notebooks can be found in the `logs/` directories.
 
+# Data availability
+
+All raw data can be found on Zenodo: https://zenodo.org/record/4055781
+
+The resulting processed datasets resulting from running this processing
+pipeline can be found on Zenodo: 
+
+- phys_analysis:
+    - https://zenodo.org/record/4271910
+    - Interactive data exploration on Google Colab:
+        https://colab.research.google.com/github/BodenmillerGroup/SpheroidPublication/blob/phys_analysis/workflow/notebooks/99_browse_export_data.py.ipynb
+
+- oexp_analysis:
+    - https://zenodo.org/record/4288515
+    - Interactive data exploration on Google Colab:
+       https://colab.research.google.com/github/BodenmillerGroup/SpheroidPublication/blob/oexp_analysis/workflow/notebooks/99_browse_export_data.py.ipynb 
+
+
 # Installation:
 This workflow requires `snakemake` (tested: v5.18, https://snakemake.readthedocs.io/en/stable/getting_started/installation.html, > 5.18) 
 as well as `singularity` (tested: v3.2.1, https://sylabs.io/guides/3.6/user-guide/quick_start.html#quick-installation-steps) to be installed.
