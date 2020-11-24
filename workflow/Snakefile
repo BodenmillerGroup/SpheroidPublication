@@ -132,7 +132,7 @@ fn_sigstats = fol_results / "dat_issig.csv"
 
 # Export
 folder_export = fol_results / 'export'
-fn_export_oexp_analysis = fol_results / 'oexp_analysis_export_v2.zip'
+fn_export_oexp_analysis = fol_results / 'oexp_analysis_export_v3.zip'
 
 # Target rules
 rule all:
