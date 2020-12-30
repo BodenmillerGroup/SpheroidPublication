@@ -1,3 +1,4 @@
+[![Snakemake](https://img.shields.io/badge/snakemake-==5.31.1-brightgreen.svg)](https://snakemake.bitbucket.io)
 # This is the companion repository for the Spheroid Publication
 
 It allows to run all analysis steps from raw data until the paper figures for the paper:  
@@ -26,7 +27,7 @@ pipeline can be found on Zenodo:
 
 
 # Installation:
-This workflow requires `snakemake` (tested: v5.18, https://snakemake.readthedocs.io/en/stable/getting_started/installation.html, > 5.18) 
+This workflow requires `snakemake` (tested: v5.18 or v5.31, https://snakemake.readthedocs.io/en/stable/getting_started/installation.html, > 5.18) 
 as well as `singularity` (tested: v3.2.1, https://sylabs.io/guides/3.6/user-guide/quick_start.html#quick-installation-steps) to be installed.
 
 It has only been tested on Ubuntu 18.04.
