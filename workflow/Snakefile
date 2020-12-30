@@ -144,9 +144,10 @@ rule all:
         fol_figures_oexp_de_results,
         fol_marker_vs_nb,
         fol_figures_oexp_de_results,
-        fol_example_oexp,
-        fn_export_oexp_analysis
+        fol_example_oexp
 
+rule export_data:
+    input: fn_export_oexp_analysis
 
 rule get_panel:
     input:
@@ -162,6 +163,7 @@ rule get_cpout:
         cp_measurements_output_srt,
     output:
         cp_measurements_output,
+
     resources:
         mem="32G",
         time='60'
